@@ -49,7 +49,7 @@ use is in `tools/fixtures/pair-sum/`. Validate with `python3 tools/problem.py <d
 - Generators live in `tools/gens.py`: `array`, `grid`, `string`, `graph`, `permutation`. Add new ones there, with a
   test in `tools/test_tools.py`.
 
-## Build gates (implemented in `tools/build.py`)
+## Build gates (`python3 tools/build.py --check [--root DIR] [id ...]`)
 1. The reference passes every hand case and scale case inside the limits.
 2. The brute force agrees with the reference on all hand cases and on the fuzz inputs.
 3. For each enforced dimension, the brute force fails at least one scale test (TLE for time, MLE for space).

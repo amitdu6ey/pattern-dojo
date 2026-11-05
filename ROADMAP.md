@@ -15,7 +15,7 @@ unchecked item each run (see `LOOP.md`).
 - [x] P0.1b Problem format and tooling: `tools/FORMAT.md` (the spec), `tools/problem.py` (loader and validator),
       `tools/gens.py` (seeded generators with ranged parameters for fuzz tests), and a fixture problem in
       `tools/fixtures/pair-sum/`. Unit tests in `tools/test_tools.py`.
-- [ ] P0.1c `tools/build.py`, gates 1 and 2, using `tools/runner.py`: for every problem, compile `driver.cpp` with the
+- [x] P0.1c `tools/build.py`, gates 1 and 2, using `tools/runner.py`: for every problem, compile `driver.cpp` with the
       reference as `solution.cpp`, run every hand case and scale case inside the limits and compare to expected
       (scale cases take their expected output from the reference); then check the brute force against the reference
       on all hand cases and on the fuzz inputs. Report per problem. Include `--check` (build and test, write
