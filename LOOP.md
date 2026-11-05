@@ -28,25 +28,46 @@ Read this first on every run. One run advances the platform by exactly one ROADM
 - Do not spawn subagents. Keep chat output short; put detail in the repo.
 - Temporary files go in the session scratchpad, not in the repo.
 
-## Quality bar
-- Problem statements are written in your own words. Never copy a platform's wording. Name the problem and
-  link to it by title and number only.
-- Every solution is C++17, uses explicit includes (no `bits/stdc++.h`), and is compiled and run by the build.
-- Every problem has at least 5 test cases, including edge cases, plus a brute-force cross-check on small random
-  inputs where that is feasible. A solution that has not run is not done.
-- Every problem page covers: the idea in plain language, why the naive approach is slow, the pattern name,
-  progressive hints, an annotated solution, complexity with the reason, and the common mistakes.
-- The interface is minimal. This is a hard requirement from the user. One column, plain type, generous
-  whitespace, and only the controls a screen needs. No hero banners, badges, stat tiles, decorative cards,
-  gradients, icons-for-decoration, or animation beyond what teaches (the grid stepper is the exception). Prefer
-  a list to a grid of cards, and a link to a button. Every element must earn its place; when unsure, leave it out.
-  Reuse only the palette tokens and fonts from `seed/rotting-oranges.html`, not its panels and chrome.
-- Light and dark themes, works at 400px wide, keyboard accessible, no horizontal page scroll.
-  No framework, no build tooling beyond `tools/build.py`.
-- A new problem should need at most four files in its folder. If it needs more, simplify the tooling first.
+## Product rules (from the user)
+- DSA only for now. Desktop only: design for widths of 1100px and up, and do no mobile layout work.
+- The interface is minimal. One column on the home screen, plain type, generous whitespace, only the controls a
+  screen needs. No hero banners, badges, stat tiles, decorative cards, gradients, decorative icons, or animation
+  beyond what teaches (the grid stepper is the exception). Prefer a list to a grid of cards and a link to a button.
+  When unsure, leave it out. Reuse only the palette tokens and fonts from `seed/rotting-oranges.html`.
+- The problem screen is a split view: the problem on the left, the editor, Run, Submit and results on the right.
+  Each pane scrolls on its own. The page itself does not scroll.
+- The learner writes C++ in the page and submits it. Submitting runs every test, including scale tests.
+- After a Submit where every test passes, ask multiple-choice questions before unlocking the walkthrough:
+  time complexity, space complexity, the pattern or the reason, an edge case, and generic questions about the data
+  structures the solution uses (a heap solution gets heap questions).
+- Follow `LEARNING.md`: attempt first, gated hints, graded solves, spaced re-solving, interview mode that
+  feels like a real round. Features must trace back to it.
+- `design/ui-mock.html` is the reference for look and structure. Its Run, Submit, interviewer and quiz are simulated.
+
+## Problem quality bar
+- A problem is five files in `problems/<NNN-slug>/`: `problem.json`, `tests.json`, `solution.cpp`, `driver.cpp`,
+  `brute.cpp`. Describe the format in `tools/build.py` and keep it simple.
+- Statements are in your own words. Never copy a platform's wording. Name the problem and link by title and
+  number only.
+- C++17, explicit includes (no `bits/stdc++.h`), compiled and run by the build. A solution that has not run is not done.
+- Tests: at least 5 small hand cases including edge cases, a random small cross-check of the reference against
+  `brute.cpp`, and scale tests generated with `tools/gens.py` (expected output comes from the reference). Size the
+  scale tests so the reference passes inside the limits and `brute.cpp` fails them: TLE to enforce time, MLE to
+  enforce space. If a dimension cannot be enforced by tests, set `enforce.<dimension>` to false with a written
+  reason. Never skip silently. The build fails if the brute force passes every scale test for an enforced dimension.
+- Limits live in `problem.json` as `time_limit_ms` and `memory_limit_mb`. Measure memory per test with
+  `os.wait4` (`ru_maxrss`, bytes on macOS) and judge it after the run. macOS does not enforce memory limits, so a
+  wall-clock timeout kills runaways.
+- Quiz: time complexity, space complexity, one pattern or reason question, one edge-case question, plus
+  `concepts` that pull from `tools/concepts/<name>.json`. Four options each, exactly one correct, an explanation,
+  and distractors that are plausible common mistakes.
+- Interview script in `problem.json`: likely clarifying questions with the interviewer's answers, two escalating
+  nudges, one follow-up with its discussion, and an edge-case checklist.
+- The page covers: the idea in plain language, why the naive approach is slow, the pattern, gated hints, an
+  annotated solution, complexity with the reason, and the common mistakes.
 
 ## Where things are
-- `seed/`: the finished Rotting Oranges page and its tested C++ solution. Use them as the reference for style and content.
-- `problems/<NNN-slug>/`: one folder per problem.
-- `site/`: generated output.
-- `tools/`: build and test scripts.
+- `LEARNING.md`: the learning strategy and the interview round design.
+- `design/ui-mock.html`: the UI reference.
+- `seed/`: the finished Rotting Oranges page and its tested C++ solution, used as the content and style reference.
+- `problems/<NNN-slug>/`: one folder per problem. `site/`: generated output. `tools/`: build, judge and fetch scripts.

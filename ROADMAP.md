@@ -1,43 +1,77 @@
 # Roadmap
 
-Goal: a static, free-to-host DSA prep platform. It teaches by pattern, with intuition first, an interactive
-visual where it helps, a tested C++ solution, and spaced review so the patterns stick.
-Learners write and submit their own C++ in the page. A small local judge (`tools/serve.py`) compiles and tests it,
-because C++ cannot run on static hosting. The loop takes the first unchecked item each run (see `LOOP.md`).
+Scope: DSA only, desktop only. The strategy is in `LEARNING.md`. The experience should feel as close to a real
+interview round as a website allows.
+
+Goal: a static, free-to-host DSA prep platform. It teaches by pattern: the idea first, a tested C++ solution, and
+spaced re-solving so patterns stick. Learners write and submit their own C++ in the page. A small local judge
+(`tools/serve.py`) compiles and tests it, because C++ cannot run on static hosting. The loop takes the first
+unchecked item each run (see `LOOP.md`).
 
 ## Phase 0: foundation
-- [ ] P0.1 `tools/build.py` (stdlib only). A problem is exactly four files in `problems/<NNN-slug>/`:
-      `problem.json` (statement, idea, hints, pattern, difficulty, complexity, mistakes, and the C++ starter code),
-      `tests.json` (cases, each marked visible or hidden), `solution.cpp` (the reference solution) and `driver.cpp`
-      (reads a test input, calls the learner's function, prints the result). The build compiles `driver.cpp` with
-      `solution.cpp`, runs every test, fails on any mismatch, and writes `site/`. Include a `--check` flag that
-      builds and tests without writing output. Share the compile-and-run code with the judge in P0.4.
-- [ ] P0.2 Shared theme and layout, extracted from `seed/rotting-oranges.html` (palette tokens and fonts only, light
-      and dark), kept minimal: one column, plain list navigation, no decoration. Plus an `index.html` that lists
-      patterns and problems as a simple list.
-- [ ] P0.3 Problem page template: statement, idea, hints that reveal one at a time, annotated solution with
-      step tabs, complexity, mistakes. Port Rotting Oranges in as problem 001, including its grid stepper.
+- [ ] P0.1 `tools/build.py` (stdlib only) and the problem format. A problem is five files in
+      `problems/<NNN-slug>/`: `problem.json` (statement, idea, hints, pattern, difficulty, complexity with
+      reasons, mistakes, C++ starter code, `time_limit_ms`, `memory_limit_mb`, `enforce` flags with a reason when a
+      dimension cannot be enforced, `concepts`, `quiz`, and the `interview` script: clarifying questions with the
+      interviewer's answers, two escalating nudges, one follow-up with its discussion, an edge-case checklist),
+      `tests.json` (hand cases marked visible or hidden, plus generated scale cases that name a generator from
+      `tools/gens.py` and a size; expected output for generated cases comes from the reference), `solution.cpp`
+      (the reference), `driver.cpp` (reads a test input, calls the function, prints the result) and `brute.cpp`
+      (a correct but naive baseline). Build gates, all required: (1) the reference passes every test inside the
+      limits; (2) the brute force agrees with the reference on all hand cases and on random small generated
+      cases; (3) for each enforced dimension the brute force fails at least one scale test (TLE for time, MLE for
+      space), otherwise the build fails with "tests do not enforce the intended complexity". Measure memory per
+      test with `os.wait4` and `ru_maxrss`, judge it after the run, and kill runaways by wall-clock timeout.
+      Include `--check` (build and test, write nothing). Share the compile-and-run code with the judge.
+- [ ] P0.2 Shared theme and layout from `seed/rotting-oranges.html` (palette tokens and fonts only, light and
+      dark), following `design/ui-mock.html`: a single column of plain lists for the home screen, no decoration.
+      Plus an `index.html` listing patterns and problems.
+- [ ] P0.3 Problem page as a split view (problem left, editor and results right, each pane scrolling on its own).
+      Statement, example, gated hints, and the annotated solution walkthrough with step tabs (locked until the
+      learner has solved the problem and finished the quiz, or explicitly gives up). Port Rotting Oranges in as
+      problem 001 with all five files, scale tests that its brute force fails, a quiz and an interview script,
+      and keep its grid stepper in the walkthrough.
 - [ ] P0.4 Local judge, `tools/serve.py` (stdlib): serves `site/` and exposes `/api/run` (visible tests only) and
-      `/api/submit` (all tests). It compiles the learner's C++ with `g++ -std=c++17 -O2` into a fresh temp
-      directory together with the problem's `driver.cpp`, runs every test under a time limit, compares output, and
-      returns a verdict per test: AC, WA, TLE, RE or CE (with the compiler message). For visible tests show input,
-      expected and actual on failure; for hidden tests show the verdict only. Safety, all required: bind to
-      127.0.0.1 only; generate a random token at startup, embed it in the pages the server serves, and require it on
-      every API call; check the Host and Origin headers; cap request, source (64 KB) and output sizes; apply CPU
-      time and wall-clock limits; delete the temp directory afterwards. Document that submitted code runs on the
+      `/api/submit` (all tests, scale tests included). Compile with `g++ -std=c++17 -O2` into a fresh temp
+      directory with the problem's `driver.cpp`, run every test under the time limit, compare output, measure peak
+      memory, and return a verdict per test: AC, WA, TLE, MLE, RE or CE (with the compiler message). Visible
+      tests show input, expected and actual on failure. Hidden and scale tests show the verdict and a label only,
+      for example "TLE on a large input: a slower approach will not finish here". Safety, all required: bind to
+      127.0.0.1 only; generate a random token at startup, embed it in the pages the server serves, and require it
+      on every API call; check the Host and Origin headers; cap request, source (64 KB) and output sizes; apply
+      CPU and wall-clock limits; delete the temp directory afterwards. Document that submitted code runs on the
       user's machine with their privileges and that macOS does not enforce memory limits. Test it with the
-      reference solution (must be AC) and with deliberately wrong, slow, crashing and non-compiling sources.
-- [ ] P0.5 Editor and Run/Submit on the problem page: a plain `<textarea>` (monospace, Tab inserts spaces, no
-      library), starter code from `problem.json`, a Run button (visible tests) and a Submit button (all tests),
-      one line for the verdict and a short per-test list, and drafts saved in `localStorage`. When the page is
-      opened without the local judge, show one line saying so and offer to copy the code. Keep it minimal.
-- [ ] P0.6 Progress tracking in `localStorage`: Submit with all AC marks a problem solved; a failed Submit marks it
-      attempted. A review queue using the Leitner intervals 1, 3, 7, 16, 35 and 90 days, as a plain list on the
-      home page.
-- [ ] P0.7 README (short, minimal), quick start, project map, and a GitHub Pages workflow file (written only;
+      reference (must be AC) and with deliberately wrong, slow, memory-hungry, crashing and non-compiling sources.
+- [ ] P0.5 Editor and Run/Submit in the right pane: a plain `<textarea>` (monospace, Tab inserts spaces, no
+      library), starter code from `problem.json`, Run (visible tests) and Submit (all tests), one line for the
+      verdict and a short per-test list, and drafts saved in `localStorage`. When the page is opened without the
+      local judge, show one line saying so and offer to copy the code.
+- [ ] P0.6 Post-submit quiz. After a Submit where every test passes, ask multiple-choice questions one at a time
+      with instant feedback and an explanation: time complexity, space complexity, the pattern or reason, an edge
+      case, and one or two concept questions drawn from the banks for the problem's `concepts` (a heap solution
+      gets heap questions: push and pop cost, which kind of heap, why not sort). Write starter banks in
+      `tools/concepts/` for queue-and-bfs, heap, stack, hash-map and binary-search: at least 8 questions each, in
+      your own words, four options, one correct, an explanation, plausible distractors. Record every answer. A
+      wrong answer marks the solve "shaky" and adds the concept to the review pool. Unlock the walkthrough after
+      the quiz.
+- [ ] P0.7 Progress and grading in `localStorage`. Statuses: solved, attempted, needs review. Each solve gets a grade:
+      unaided, with hints, slow, shaky (quiz misses) or failed. Re-solve intervals follow the Leitner steps 1, 3, 7,
+      16, 35 and 90 days, shortened by weaker grades. The home page shows the review queue as a plain list of
+      re-solves plus missed concept questions.
+- [ ] P0.8 Interview mode core, following `LEARNING.md` and the mock: a timed round (40 minutes by default) on a
+      problem the system picks (interleaved, weighted toward due reviews, weak patterns and company trending).
+      Stages: clarify (scripted interviewer answers), plan (typed approach, brute force, better idea,
+      complexity, required before coding), code (Run on visible examples only, no hints), test (at least two
+      of the learner's own cases), complexity (typed statement, checked against the quiz answers), follow-up
+      (scripted question). Two logged nudges at most. No walkthrough access during the round.
+- [ ] P0.9 Interview debrief and calibration: a rubric (problem solving, coding, verification, communication, time),
+      time spent per stage against the suggested boxes, nudges used, the learner's confidence rating compared with
+      the outcome, an error-cause tag after a miss (misread, wrong pattern, missed edge case, bug, too slow),
+      and the grade fed to the review scheduler.
+- [ ] P0.10 README (short, minimal), quick start, project map, and a GitHub Pages workflow file (written only;
       never pushed). State plainly that static hosting is read-only: running and submitting code needs the local
       judge from P0.4.
-- [ ] P0.8 Trending pipeline: `tools/fetch_trending.py` (stdlib `urllib`). For each company in
+- [ ] P0.11 Trending pipeline: `tools/fetch_trending.py` (stdlib `urllib`). For each company in
       `tools/companies.json` (Microsoft, Google, Meta/Facebook, Stripe, Deliveroo, ShareChat, Amazon, Intuit,
       LinkedIn), read recent LeetCode discussion posts tagged with that company in the interview question and
       experience categories, extract the LeetCode problems each post mentions (problem links and "LC <number>"
@@ -49,14 +83,16 @@ because C++ cannot run on static hosting. The loop takes the first unchecked ite
       labelled sample built from the fixtures, never presented as real data. Document
       `python3 tools/fetch_trending.py --live` in the README as a command the user runs, and note that LeetCode's
       terms may limit automated access, so the user should check them first.
-- [ ] P0.9 Trending UI: a "Trending by company" section on the home page with company tabs, ranked problems with
-      mention count and last-seen date, a "last updated" stamp, and a "sample data" banner when the data is the
-      fixture sample. Each row links to the LeetCode problem and, when we have our own page, to that page.
-- [ ] P0.10 Map trending problems to patterns (`tools/patterns.json`; unknown ones show "unmapped") and add a
+- [ ] P0.12 Trending UI as in the mock: company tabs, a ranked plain list with mention count and last-seen date, a
+      "last updated" stamp, and a "sample data" note when the data is the fixture sample. Each row links to the
+      LeetCode problem and, when we have our own page, to that page.
+- [ ] P0.13 Map trending problems to patterns (`tools/patterns.json`; unknown ones show "unmapped") and add a
       "Practice what's trending" filter that orders our problems by mentions at the chosen company.
 
-## Phase 1: patterns (each problem is one item: idea, visual if useful, tested solution, page)
-Problem titles are well-known interview problems. Write every statement in your own words.
+## Phase 1: patterns
+Each problem is one item and includes everything in the quality bar: five files with scale tests that its brute
+force fails, a quiz, an interview script, and the page. Problem titles are well-known interview problems. Write
+every statement in your own words.
 - [ ] P1.01 Arrays and hashing: Two Sum
 - [ ] P1.02 Arrays and hashing: Group Anagrams
 - [ ] P1.03 Arrays and hashing: Top K Frequent Elements
@@ -121,16 +157,20 @@ Problem titles are well-known interview problems. Write every statement in your 
 - [ ] P1.62 Bit manipulation: Counting Bits
 
 ## Phase 2: platform features
-- [ ] P2.1 "Which pattern is this?" quiz: show a problem statement, the learner picks the pattern, then sees why.
+- [ ] P2.1 "Which pattern is this?" drill: show a statement, the learner names the pattern and the reason, then sees why.
 - [ ] P2.2 Pattern cheat sheets: one page per pattern with the template code and when to reach for it.
-- [ ] P2.3 Search and filter across problems by pattern, difficulty and status.
-- [ ] P2.4 Mock interview mode: random problem, countdown timer, reveal hints with a penalty, self-rating at the end.
+- [ ] P2.3 Search and filter across problems by pattern, difficulty, status and company.
+- [ ] P2.4 Interview extras: a two-problem onsite round (45 minutes each), company style presets (timing and
+      follow-up depth), and optional local voice recording of the spoken plan (microphone, kept in the browser).
 - [ ] P2.5 Reusable visualizers: array with pointers, binary tree, recursion tree, DP table. Wire them into earlier problems.
-- [ ] P2.6 Stats page: solved per pattern, review streak, weakest patterns.
-- [ ] P2.7 In-browser JavaScript runner (Web Worker, with a timeout) so Run and Submit also work on static hosting
-      for problems that have a JavaScript reference solution. The C++ judge stays the main path.
+- [ ] P2.6 Stats page: solves per pattern, grade mix, error causes, calibration, weakest concepts.
+- [ ] P2.7 More concept banks: trie, union-find, BST, graph traversal, sorting, recursion, dynamic programming, intervals.
+- [ ] P2.8 In-browser JavaScript runner (Web Worker, with a timeout) so Run and Submit also work on static hosting
+      for problems with a JavaScript reference. The C++ judge stays the main path. Say plainly that time and memory
+      limits are weaker in the browser.
 
 ## Phase 3: polish
-- [ ] P3.1 Accessibility pass (keyboard, contrast, reduced motion) and a 400px phone pass over every page.
-- [ ] P3.2 Offline support and performance pass; measure page weight and report it in the README.
-- [ ] P3.3 Final README, LICENSE, and a CONTRIBUTING note on how to add a problem in four files.
+- [ ] P3.1 Accessibility pass (keyboard, contrast, reduced motion) and a check at 1100px, 1440px and 1920px widths
+      on every page. No mobile layout.
+- [ ] P3.2 Performance pass; measure page weight and report it in the README.
+- [ ] P3.3 Final README, LICENSE, and a CONTRIBUTING note on how to add a problem in five files.
