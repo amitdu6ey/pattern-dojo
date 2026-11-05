@@ -9,7 +9,10 @@ spaced re-solving so patterns stick. Learners write and submit their own C++ in 
 unchecked item each run (see `LOOP.md`).
 
 ## Phase 0: foundation
-- [ ] P0.1 `tools/build.py` (stdlib only) and the problem format. A problem is five files in
+- [x] P0.1a `tools/runner.py`: compile C++ and run it with time and memory limits (peak memory from `os.wait4`,
+      a live memory watchdog because macOS ignores `RLIMIT_AS`, verdicts OK, TLE, MLE, RE, OLE and CE), with a
+      `--selftest` that proves each verdict on small programs. Split out of P0.1; the judge and the build share it.
+- [ ] P0.1b (the rest of P0.1; use `tools/runner.py` for compiling and running instead of new code) `tools/build.py` (stdlib only) and the problem format. A problem is five files in
       `problems/<NNN-slug>/`: `problem.json` (statement, idea, hints, pattern, difficulty, complexity with
       reasons, mistakes, C++ starter code, `time_limit_ms`, `memory_limit_mb`, `enforce` flags with a reason when a
       dimension cannot be enforced, `concepts`, `quiz`, and the `interview` script: clarifying questions with the
