@@ -3,20 +3,24 @@
 Read this first on every run. One run advances the platform by exactly one ROADMAP item.
 
 ## Steps
+0. Run `git pull --ff-only origin main`. A cloud run starts from a fresh checkout and a local run may be behind.
 1. Read `state.json`.
    - `status` is `working` and `started_at` is less than 40 minutes ago: another run is in progress.
      Do nothing, say so in one line, and end the turn.
    - `status` is `working` and older than 40 minutes: the last run died. Add a line to `LOG.md`,
      set status to `idle`, and continue.
 2. Take the first unchecked item in `ROADMAP.md`, top to bottom. If none are left, stop the loop and report.
-3. Set `state.json` to `working` with `current` and `started_at` (`date -u +%FT%TZ`).
+3. Set `state.json` to `working` with `current` and `started_at` (`date -u +%FT%TZ`). Commit that change on its own
+   (`git commit -am "lock: <item id>"`) and `git push origin main`, so any other runner sees the lock.
 4. Do the item. One item per run. If it is too big for one run, split it into sub-items in `ROADMAP.md`,
    and do only the first.
 5. Gate: once `tools/build.py` exists, `python3 tools/build.py --check` must pass before you commit.
    Never commit a failing build or a failing solution.
 6. Tick the item in `ROADMAP.md`, append one line to `LOG.md` (date, item, what changed, how it was verified),
    set `state.json` to `idle` with `last_run`, then `git add -A` and `git commit -m "<item id>: <summary>"`.
-   After the commit, run `git push origin main`. Push only when the gate has passed.
+   After the commit, run `git push origin main`. Push only when the gate has passed. If the push is rejected, run
+   `git pull --rebase origin main`, run the gate again, and push once more. If that fails, write what happened in
+   `LOG.md`, set the state to `idle`, and end the run.
 7. Reply with two lines at most: what you did, and the next item.
 
 ## Hard rules
@@ -31,7 +35,13 @@ Read this first on every run. One run advances the platform by exactly one ROADM
 - Python is stdlib only (3.9). C++ is C++17 built with `g++`. No pip, no npm, no downloads.
   The static site may load Google Fonts and nothing else from the network.
 - Do not spawn subagents. Keep chat output short; put detail in the repo.
-- Temporary files go in the session scratchpad, not in the repo.
+- Temporary files go in a folder made with `mktemp -d`, never in the repo.
+
+## Where this runs
+The loop may run on the user's machine or in an Anthropic cloud session that has only a fresh checkout of this repo,
+no home folder, and none of the user's settings. So everything you need is in this repo, paths are relative to the
+repo root, and `python3` and `g++` are expected. If either is missing, write that in `LOG.md` and stop; never skip
+the gate. Both Linux and macOS must work.
 
 ## Product rules (from the user)
 - DSA only for now. Desktop only: design for widths of 1100px and up, and do no mobile layout work.

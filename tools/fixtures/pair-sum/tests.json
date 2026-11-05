@@ -1,0 +1,15 @@
+{
+  "cases": [
+    {"name": "example", "input": "5 6\n1 5 3 3 2\n", "expected": "2", "visible": true},
+    {"name": "single element", "input": "1 0\n0\n", "expected": "0", "visible": true},
+    {"name": "all equal", "input": "4 4\n2 2 2 2\n", "expected": "6", "visible": true},
+    {"name": "no pair", "input": "3 100\n1 2 3\n", "expected": "0", "visible": false},
+    {"name": "negatives and zeros", "input": "6 0\n-1 1 -2 2 0 0\n", "expected": "3", "visible": false},
+    {"name": "repeated values", "input": "5 7\n3 4 3 4 7\n", "expected": "4", "visible": false}
+  ],
+  "scale": [
+    {"name": "n = 200000", "label": "a large input",
+     "spec": {"gen": "array", "seed": 7, "n": 200000, "lo": -1000000, "hi": 1000000, "k": 0}}
+  ],
+  "fuzz": {"runs": 60, "seed": 500, "spec": {"gen": "array", "n": [1, 12], "lo": -5, "hi": 5, "k": [-4, 4]}}
+}

@@ -12,20 +12,19 @@ unchecked item each run (see `LOOP.md`).
 - [x] P0.1a `tools/runner.py`: compile C++ and run it with time and memory limits (peak memory from `os.wait4`,
       a live memory watchdog because macOS ignores `RLIMIT_AS`, verdicts OK, TLE, MLE, RE, OLE and CE), with a
       `--selftest` that proves each verdict on small programs. Split out of P0.1; the judge and the build share it.
-- [ ] P0.1b (the rest of P0.1; use `tools/runner.py` for compiling and running instead of new code) `tools/build.py` (stdlib only) and the problem format. A problem is five files in
-      `problems/<NNN-slug>/`: `problem.json` (statement, idea, hints, pattern, difficulty, complexity with
-      reasons, mistakes, C++ starter code, `time_limit_ms`, `memory_limit_mb`, `enforce` flags with a reason when a
-      dimension cannot be enforced, `concepts`, `quiz`, and the `interview` script: clarifying questions with the
-      interviewer's answers, two escalating nudges, one follow-up with its discussion, an edge-case checklist),
-      `tests.json` (hand cases marked visible or hidden, plus generated scale cases that name a generator from
-      `tools/gens.py` and a size; expected output for generated cases comes from the reference), `solution.cpp`
-      (the reference), `driver.cpp` (reads a test input, calls the function, prints the result) and `brute.cpp`
-      (a correct but naive baseline). Build gates, all required: (1) the reference passes every test inside the
-      limits; (2) the brute force agrees with the reference on all hand cases and on random small generated
-      cases; (3) for each enforced dimension the brute force fails at least one scale test (TLE for time, MLE for
-      space), otherwise the build fails with "tests do not enforce the intended complexity". Measure memory per
-      test with `os.wait4` and `ru_maxrss`, judge it after the run, and kill runaways by wall-clock timeout.
-      Include `--check` (build and test, write nothing). Share the compile-and-run code with the judge.
+- [x] P0.1b Problem format and tooling: `tools/FORMAT.md` (the spec), `tools/problem.py` (loader and validator),
+      `tools/gens.py` (seeded generators with ranged parameters for fuzz tests), and a fixture problem in
+      `tools/fixtures/pair-sum/`. Unit tests in `tools/test_tools.py`.
+- [ ] P0.1c `tools/build.py`, gates 1 and 2, using `tools/runner.py`: for every problem, compile `driver.cpp` with the
+      reference as `solution.cpp`, run every hand case and scale case inside the limits and compare to expected
+      (scale cases take their expected output from the reference); then check the brute force against the reference
+      on all hand cases and on the fuzz inputs. Report per problem. Include `--check` (build and test, write
+      nothing) and a problem filter. Test it on the fixture, including a deliberately wrong reference.
+- [ ] P0.1d Gate 3 in `tools/build.py`: for each enforced dimension the brute force must fail at least one scale test
+      (TLE for time, MLE for space), otherwise the build fails with "tests do not enforce the intended complexity".
+      Also require the reference to use at most half the time limit on scale tests. Then write `site/` (a stub page
+      per problem is enough; the real templates are P0.2 and P0.3). Test it on the fixture with a brute force that
+      is accidentally fast.
 - [ ] P0.2 Shared theme and layout from `seed/rotting-oranges.html` (palette tokens and fonts only, light and
       dark), following `design/ui-mock.html`: a single column of plain lists for the home screen, no decoration.
       Plus an `index.html` listing patterns and problems.

@@ -1,0 +1,67 @@
+{
+  "id": "pair-sum",
+  "title": "Pair Sum Count",
+  "pattern": "arrays-and-hashing",
+  "tags": ["hash-map"],
+  "difficulty": "easy",
+  "level": "basic",
+  "statement": "You get a list of integers and a target value k. Count the pairs of positions (i, j) with i < j whose values add up to k. Two positions with equal values are different pairs.",
+  "input_format": "First line: n and k. Second line: n integers.",
+  "output_format": "One integer: the number of pairs.",
+  "examples": [
+    {"input": "5 6\n1 5 3 3 2", "output": "2", "explain": "1 + 5 and the two 3s."}
+  ],
+  "constraints": ["1 <= n <= 200000", "values fit in 32 bits", "the answer can exceed 32 bits"],
+  "idea": "For each value, you only need to know how many earlier values complete it to k. Keep counts of values seen so far in a hash map and add the count of k - x as you go.",
+  "naive": "Checking every pair takes about n squared steps, which is far too slow at n = 200000.",
+  "hints": [
+    "For a fixed element, what single value would complete the pair?",
+    "Could you find out how many times that value has appeared earlier without scanning for it?",
+    "A hash map from value to count answers that in constant time on average."
+  ],
+  "complexity": {
+    "time": "O(n)",
+    "time_why": "One pass; each step does a constant-time average lookup and update.",
+    "space": "O(n)",
+    "space_why": "The map can hold one entry per distinct value."
+  },
+  "mistakes": [
+    "Using a 32-bit integer for the count when it can reach about n squared over 2.",
+    "Counting a pair twice by looking both before and after the current element."
+  ],
+  "starter": "#include <vector>\nusing namespace std;\n\nlong long countPairs(vector<long long>& a, long long k) {\n    // your code\n}\n",
+  "time_limit_ms": 1000,
+  "memory_limit_mb": 256,
+  "enforce": {"time": true, "space": false, "space_reason": "Fixture only; no input size makes a quadratic-space approach fail without huge inputs."},
+  "concepts": ["hash-map"],
+  "quiz": [
+    {"tag": "Time complexity", "q": "What is the time complexity of the hash-map solution?",
+     "options": ["O(n)", "O(n log n)", "O(n^2)", "O(n * k)"], "answer": 0,
+     "explanation": "One pass with constant-time average lookups."},
+    {"tag": "Space complexity", "q": "What is the extra space of the hash-map solution?",
+     "options": ["O(1)", "O(n)", "O(n^2)", "O(k)"], "answer": 1,
+     "explanation": "The map stores up to one entry per distinct value."},
+    {"tag": "Hash map", "q": "What does a hash-map lookup cost on average?",
+     "options": ["O(1)", "O(log n)", "O(n)", "O(n log n)"], "answer": 0,
+     "explanation": "With a good hash function the expected cost per lookup is constant."},
+    {"tag": "Edge case", "q": "All n values are equal and 2 * value equals k. Which integer type holds the answer safely?",
+     "options": ["A 64-bit integer", "A 32-bit integer", "A 16-bit integer", "Any type works"], "answer": 0,
+     "explanation": "The count reaches n * (n - 1) / 2, which can exceed 32 bits."}
+  ],
+  "interview": {
+    "clarifications": [
+      {"match": "duplicate|repeat|same value", "answer": "Values can repeat. Pairs are counted by position, not by value."},
+      {"match": "negative|sign", "answer": "Values can be negative."},
+      {"match": "size|large|constraint|many", "answer": "n can be up to 200000."}
+    ],
+    "nudges": [
+      "For one element, what value would complete the pair?",
+      "How can you know how many times that value appeared before, without a second loop?"
+    ],
+    "followup": {
+      "question": "What changes if the array is sorted?",
+      "discussion": "Two pointers work in O(n) time and O(1) extra space; with many duplicates you count runs of equal values."
+    },
+    "edge_cases": ["n = 1", "all values equal", "no pair exists"]
+  }
+}

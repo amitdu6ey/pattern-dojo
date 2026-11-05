@@ -21,6 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python3 tools/runner.py --selftest
+      - run: python3 -m unittest discover -s tools -p "test_*.py"
 
   build:
     runs-on: ubuntu-latest
