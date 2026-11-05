@@ -60,19 +60,21 @@ unchecked item each run (see `LOOP.md`).
 - [ ] P0.7 Progress and grading in `localStorage`. Statuses: solved, attempted, needs review. Each solve gets a grade:
       unaided, with hints, slow, shaky (quiz misses) or failed. Re-solve intervals follow the Leitner steps 1, 3, 7,
       16, 35 and 90 days, shortened by weaker grades. The home page shows the review queue as a plain list of
-      re-solves plus missed concept questions.
+      re-solves plus missed concept questions. Cap the queue (default 6 due items, weakest first) and let the
+      learner retire a problem, so reviews do not turn into burnout.
 - [ ] P0.8 Interview mode core, following `LEARNING.md` and the mock: a timed round (40 minutes by default) on a
       problem the system picks (interleaved, weighted toward due reviews, weak patterns and company trending).
       Stages: clarify (scripted interviewer answers), plan (typed approach, brute force, better idea,
       complexity, required before coding), code (Run on visible examples only, no hints), test (at least two
       of the learner's own cases), complexity (typed statement, checked against the quiz answers), follow-up
       (scripted question). Two logged nudges at most. No walkthrough access during the round.
-- [ ] P0.9 Interview debrief and calibration: a rubric (problem solving, coding, verification, communication, time),
+- [ ] P0.9 Interview debrief and calibration: a rubric aligned with the four interview signals (problem solving, technical competence, testing,
+      communication) plus time and hints used,
       time spent per stage against the suggested boxes, nudges used, the learner's confidence rating compared with
       the outcome, an error-cause tag after a miss (misread, wrong pattern, missed edge case, bug, too slow),
       and the grade fed to the review scheduler.
-- [ ] P0.10 README (short, minimal), quick start, project map, and a GitHub Pages workflow file (written only;
-      never pushed). State plainly that static hosting is read-only: running and submitting code needs the local
+- [ ] P0.10 README (short, minimal), quick start, project map, and a check that the deployed site matches the repo. The Pages workflow already exists; confirm the latest
+      Actions run is green and the live URL serves the current build. State plainly that static hosting is read-only: running and submitting code needs the local
       judge from P0.4.
 - [ ] P0.11 Trending pipeline: `tools/fetch_trending.py` (stdlib `urllib`). For each company in
       `tools/companies.json` (Microsoft, Google, Meta/Facebook, Stripe, Deliveroo, ShareChat, Amazon, Intuit,
@@ -159,18 +161,73 @@ every statement in your own words.
 - [ ] P1.61 Bit manipulation: Single Number
 - [ ] P1.62 Bit manipulation: Counting Bits
 
+## Phase 1b: breadth
+A second batch toward about 100 problems, same quality bar. Source: gaps found in `RESEARCH.md`.
+- [ ] P1.63 Arrays and hashing: Contains Duplicate
+- [ ] P1.64 Arrays and hashing: Valid Anagram
+- [ ] P1.65 Arrays and hashing: Longest Consecutive Sequence
+- [ ] P1.66 Arrays and hashing: Valid Sudoku
+- [ ] P1.67 Two pointers: Two Sum II (sorted input)
+- [ ] P1.68 Sliding window: Longest Repeating Character Replacement
+- [ ] P1.69 Sliding window: Permutation in String
+- [ ] P1.70 Binary search: Search a 2D Matrix
+- [ ] P1.71 Binary search: Find Minimum in Rotated Sorted Array
+- [ ] P1.72 Binary search: Time Based Key-Value Store
+- [ ] P1.73 Stack: Evaluate Reverse Polish Notation
+- [ ] P1.74 Stack: Generate Parentheses
+- [ ] P1.75 Stack: Car Fleet
+- [ ] P1.76 Linked list: Reorder List
+- [ ] P1.77 Linked list: Remove Nth Node From End
+- [ ] P1.78 Linked list: Add Two Numbers
+- [ ] P1.79 Linked list: Copy List with Random Pointer
+- [ ] P1.80 Linked list: Reverse Nodes in k-Group
+- [ ] P1.81 Trees: Invert Binary Tree
+- [ ] P1.82 Trees: Diameter of Binary Tree
+- [ ] P1.83 Trees: Subtree of Another Tree
+- [ ] P1.84 Trees: Kth Smallest Element in a BST
+- [ ] P1.85 Trees: Construct Binary Tree from Preorder and Inorder
+- [ ] P1.86 Trees: Binary Tree Maximum Path Sum
+- [ ] P1.87 Trees: Serialize and Deserialize Binary Tree
+- [ ] P1.88 Heap: K Closest Points to Origin
+- [ ] P1.89 Backtracking: Word Search
+- [ ] P1.90 Backtracking: Palindrome Partitioning
+- [ ] P1.91 Graphs: Pacific Atlantic Water Flow
+- [ ] P1.92 Graphs: Graph Valid Tree
+- [ ] P1.93 Graphs: Alien Dictionary
+- [ ] P1.94 Graphs: Min Cost to Connect All Points
+- [ ] P1.95 Dynamic programming: Longest Palindromic Substring
+- [ ] P1.96 Dynamic programming: Decode Ways
+- [ ] P1.97 Dynamic programming: Word Break
+- [ ] P1.98 Dynamic programming: Partition Equal Subset Sum
+- [ ] P1.99 Dynamic programming: Best Time to Buy and Sell Stock with Cooldown
+- [ ] P1.100 Greedy: Maximum Subarray
+- [ ] P1.101 Greedy: Jump Game II
+- [ ] P1.102 Math and matrices: Rotate Image
+- [ ] P1.103 Math and matrices: Spiral Matrix
+- [ ] P1.104 Math and matrices: Set Matrix Zeroes
+- [ ] P1.105 Bit manipulation: Missing Number
+- [ ] P1.106 Bit manipulation: Number of 1 Bits
+
 ## Phase 2: platform features
 - [ ] P2.1 "Which pattern is this?" drill: show a statement, the learner names the pattern and the reason, then sees why.
 - [ ] P2.2 Pattern cheat sheets: one page per pattern with the template code and when to reach for it.
 - [ ] P2.3 Search and filter across problems by pattern, difficulty, status and company.
 - [ ] P2.4 Interview extras: a two-problem onsite round (45 minutes each), company style presets (timing and
       follow-up depth), and optional local voice recording of the spoken plan (microphone, kept in the browser).
-- [ ] P2.5 Reusable visualizers: array with pointers, binary tree, recursion tree, DP table. Wire them into earlier problems.
+- [ ] P2.5 Reusable visualizers: array with pointers, binary tree, recursion tree, DP table. Wire them into earlier problems. Use predict-then-reveal (the learner predicts the next state before it is
+      shown) and pair every visual with a question.
 - [ ] P2.6 Stats page: solves per pattern, grade mix, error causes, calibration, weakest concepts.
 - [ ] P2.7 More concept banks: trie, union-find, BST, graph traversal, sorting, recursion, dynamic programming, intervals.
 - [ ] P2.8 In-browser JavaScript runner (Web Worker, with a timeout) so Run and Submit also work on static hosting
       for problems with a JavaScript reference. The C++ judge stays the main path. Say plainly that time and memory
       limits are weaker in the browser.
+
+- [ ] P2.9 Prerequisite graph: declare which patterns depend on which (for example, binary search before
+      rotated-array variants, BFS before shortest paths). Recommend a "next up" problem from the prerequisites
+      and the learner's weakest patterns.
+- [ ] P2.10 Add a `level` to each problem (basic, variant, combined) and order problems inside a pattern that
+      way, with a short reusable template per pattern. Keep the quiz and mixed review so templates are understood,
+      not just memorised.
 
 ## Phase 3: polish
 - [ ] P3.1 Accessibility pass (keyboard, contrast, reduced motion) and a check at 1100px, 1440px and 1920px widths

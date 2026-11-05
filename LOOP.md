@@ -16,10 +16,15 @@ Read this first on every run. One run advances the platform by exactly one ROADM
    Never commit a failing build or a failing solution.
 6. Tick the item in `ROADMAP.md`, append one line to `LOG.md` (date, item, what changed, how it was verified),
    set `state.json` to `idle` with `last_run`, then `git add -A` and `git commit -m "<item id>: <summary>"`.
+   After the commit, run `git push origin main`. Push only when the gate has passed.
 7. Reply with two lines at most: what you did, and the next item.
 
 ## Hard rules
-- Never run `git push`, publish an Artifact, create accounts, or enter credentials.
+- The repo is public at `github.com/amitdu6ey/pattern-dojo` and deploys to GitHub Pages on every push to `main`.
+  The only push allowed is `git push origin main`, after the gate passes. Never force-push, never add another
+  remote, never rewrite history. Never publish an Artifact, create accounts, or enter credentials.
+- Everything committed is public. No personal data, secrets or tokens. Nothing copied from other sites.
+- Pages serves the site read-only. Running and submitting code needs the local judge, so the site must say so.
 - The loop never fetches from LeetCode or any other site. Live fetching is a command the user runs. Build and
   test the fetcher against recorded fixtures that you write by hand and mark clearly as samples. Never present
   fixture data as real.
