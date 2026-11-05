@@ -1,7 +1,10 @@
-"""Tests for tools/build.py gates 1 and 2, using copies of the fixture problem with deliberate faults.
+"""Tests for tools/build.py (gates 1 to 3 and the site output), using copies of the fixture problem with deliberate faults.
 
   python3 -m unittest discover -s tools -p "test_*.py"
 """
+import contextlib
+import io
+import json
 import os
 import shutil
 import subprocess
@@ -46,7 +49,7 @@ class BuildGateTests(unittest.TestCase):
         self.edit("solution.cpp", "pairs += it->second;", "pairs += it->second + 1;")
         errs = self.run_check()["errors"]
         self.assertTrue(any(e.startswith("gate 1") and "expects" in e for e in errs), errs)
-        self.assertTrue(any("gate 2 skipped" in e for e in errs), errs)
+        self.assertTrue(any("gates 2 and 3 skipped" in e for e in errs), errs)
 
     def test_slow_reference_fails_gate_1_on_scale(self):
         shutil.copy(os.path.join(self.dir, "brute.cpp"), os.path.join(self.dir, "solution.cpp"))
@@ -90,6 +93,79 @@ class BuildGateTests(unittest.TestCase):
         bad = subprocess.run([sys.executable, script, "--check", "--root", self.root], capture_output=True, text=True)
         self.assertEqual(bad.returncode, 1)
         self.assertIn("FAIL", bad.stdout)
+
+
+    def set_enforce(self, enforce):
+        path = os.path.join(self.dir, "problem.json")
+        with open(path) as f:
+            data = json.load(f)
+        data["enforce"] = enforce
+        with open(path, "w") as f:
+            json.dump(data, f)
+
+    # ---- gate 3
+    def test_fast_brute_force_fails_gate_3(self):
+        shutil.copy(os.path.join(self.dir, "solution.cpp"), os.path.join(self.dir, "brute.cpp"))
+        errs = self.run_check()["errors"]
+        self.assertTrue(any(e.startswith("gate 3") and "do not enforce" in e and "(time)" in e for e in errs), errs)
+
+    def test_space_enforced_needs_a_brute_force_that_hits_mle(self):
+        self.set_enforce({"time": False, "time_reason": "not tested here", "space": True})
+        errs = self.run_check()["errors"]
+        self.assertTrue(any("(space)" in e and "MLE" in e for e in errs), errs)
+
+    def test_space_enforced_passes_when_the_brute_force_exceeds_memory(self):
+        self.set_enforce({"time": False, "time_reason": "not tested here", "space": True})
+        self.edit("brute.cpp", "#include <vector>", "#include <cstdlib>\n#include <vector>")
+        self.edit("brute.cpp", "long long pairs = 0;",
+                  "long long pairs = 0; if (a.size() > 100000) { volatile char* big = (volatile char*)malloc(400u << 20); "
+                  "for (size_t i = 0; i < (400u << 20); i += 4096) big[i] = 1; }")
+        r = self.run_check()
+        self.assertEqual(r["errors"], [])
+        self.assertIn("brute MLE", r["info"])
+
+    def test_dimension_not_enforced_is_reported_and_needs_no_hit(self):
+        self.set_enforce({"time": False, "time_reason": "fixture", "space": False, "space_reason": "fixture"})
+        shutil.copy(os.path.join(self.dir, "solution.cpp"), os.path.join(self.dir, "brute.cpp"))
+        r = self.run_check()
+        self.assertEqual(r["errors"], [])
+        self.assertIn("time not enforced", r["info"])
+
+    def test_reference_headroom_check(self):
+        scale = [{"name": "big", "wall_ms": 600.0, "peak_mb": 200.0}]
+        self.assertEqual(build.reference_headroom_errors(scale, 1000, 256, {"time": False, "space": False}), [])
+        self.assertEqual(len(build.reference_headroom_errors(scale, 1000, 256, {"time": True, "space": True})), 2)
+        ok = [{"name": "big", "wall_ms": 400.0, "peak_mb": 100.0}]
+        self.assertEqual(build.reference_headroom_errors(ok, 1000, 256, {"time": True, "space": True}), [])
+
+    # ---- site output
+    def build_main(self, *args):
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            code = build.main(list(args))
+        return code, buf.getvalue()
+
+    def test_check_mode_writes_nothing(self):
+        out = os.path.join(self.root, "out")
+        code, _ = self.build_main("--check", "--root", self.root, "--out", out)
+        self.assertEqual(code, 0)
+        self.assertFalse(os.path.exists(out))
+
+    def test_build_writes_pages_and_index(self):
+        out = os.path.join(self.root, "out")
+        code, text = self.build_main("--root", self.root, "--out", out)
+        self.assertEqual(code, 0, text)
+        with open(os.path.join(out, "problems", "pair-sum", "index.html")) as f:
+            self.assertIn("Pair Sum Count", f.read())
+        with open(os.path.join(out, "data", "problems.json")) as f:
+            self.assertEqual([x["id"] for x in json.load(f)["problems"]], ["pair-sum"])
+
+    def test_failing_problem_writes_no_site(self):
+        self.edit("solution.cpp", "pairs += it->second;", "pairs += it->second + 1;")
+        out = os.path.join(self.root, "out")
+        code, _ = self.build_main("--root", self.root, "--out", out)
+        self.assertEqual(code, 1)
+        self.assertFalse(os.path.exists(out))
 
 
 if __name__ == "__main__":

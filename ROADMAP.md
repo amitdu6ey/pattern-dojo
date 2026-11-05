@@ -20,7 +20,7 @@ unchecked item each run (see `LOOP.md`).
       (scale cases take their expected output from the reference); then check the brute force against the reference
       on all hand cases and on the fuzz inputs. Report per problem. Include `--check` (build and test, write
       nothing) and a problem filter. Test it on the fixture, including a deliberately wrong reference.
-- [ ] P0.1d Gate 3 in `tools/build.py`: for each enforced dimension the brute force must fail at least one scale test
+- [x] P0.1d Gate 3 in `tools/build.py`: for each enforced dimension the brute force must fail at least one scale test
       (TLE for time, MLE for space), otherwise the build fails with "tests do not enforce the intended complexity".
       Also require the reference to use at most half the time limit on scale tests. Then write `site/` (a stub page
       per problem is enough; the real templates are P0.2 and P0.3). Test it on the fixture with a brute force that
