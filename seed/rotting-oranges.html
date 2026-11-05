@@ -1,0 +1,500 @@
+<title>Rotting Oranges</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* Layout concept: one reading column, with a single tool-like panel (the grid stepper) as the centrepiece.
+   Palette comes from the subject: orange flesh, olive mould, hatched empty cells, a dark code block. */
+:root {
+  --bg: #f3f5ef;
+  --surface: #fbfcf8;
+  --ink: #1c2218;
+  --muted: #566052;
+  --rule: #d2d8c7;
+  --fresh: #ee8a1f;
+  --fresh-hi: #f8b563;
+  --rot: #566f33;
+  --rot-hi: #7f9a55;
+  --empty: #e3e8da;
+  --accent: #b4470a;
+  --accent-ink: #ffffff;
+  --mark: #f9e2c3;
+  --code-bg: #1f251b;
+  --code-fg: #e6eadc;
+  --code-dim: #8a9582;
+  --code-hl: rgba(238, 138, 31, 0.24);
+  --c-kw: #f2a65a;
+  --c-ty: #9fd0a0;
+  --c-num: #e9c46a;
+  --c-cm: #8a9582;
+  --font-body: "Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12150e; --surface: #1a1e15; --ink: #e7ebdc; --muted: #9ba593; --rule: #30372a;
+    --fresh: #f29a38; --fresh-hi: #fbc27c; --rot: #6d8a43; --rot-hi: #93ad66; --empty: #242920;
+    --accent: #f29a38; --accent-ink: #1a1204; --mark: #3a2a12;
+    --code-bg: #0d100a; --code-hl: rgba(242, 154, 56, 0.22);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12150e; --surface: #1a1e15; --ink: #e7ebdc; --muted: #9ba593; --rule: #30372a;
+  --fresh: #f29a38; --fresh-hi: #fbc27c; --rot: #6d8a43; --rot-hi: #93ad66; --empty: #242920;
+  --accent: #f29a38; --accent-ink: #1a1204; --mark: #3a2a12;
+  --code-bg: #0d100a; --code-hl: rgba(242, 154, 56, 0.22);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.65 var(--font-body);
+  padding-block: 2.5rem 4rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 46rem; margin: 0 auto; }
+h1, h2, h3 { text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2.3rem, 8vw, 3.6rem); font-weight: 700; letter-spacing: -0.025em; }
+h2 { font-size: 1.55rem; font-weight: 700; letter-spacing: -0.015em; margin-bottom: 0.9rem; }
+h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.3rem; }
+p { margin: 0 0 1rem; max-width: 65ch; }
+section { margin-top: 3.5rem; }
+a { color: var(--accent); }
+b, strong { font-weight: 700; }
+code, .mono { font-family: var(--font-mono); font-size: 0.9em; }
+:not(pre) > code { background: var(--mark); padding: 0.08em 0.35em; border-radius: 4px; }
+.eyebrow { font: 500 12.5px/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 1rem; }
+.lede { font-size: 1.15rem; color: var(--ink); margin-top: 1.1rem; }
+.muted { color: var(--muted); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* grid cells: shared by the legend, the strips and the stepper */
+.cell { display: block; position: relative; aspect-ratio: 1; border: 0; padding: 0; border-radius: 10px; background: var(--empty); font-family: var(--font-mono); color: inherit; }
+.cell.s0 { background: repeating-linear-gradient(135deg, transparent 0 5px, var(--rule) 5px 6px), var(--empty); }
+.cell::before { content: ""; position: absolute; inset: 12%; border-radius: 50%; opacity: 0; }
+.cell.s1::before { opacity: 1; background: radial-gradient(circle at 35% 30%, var(--fresh-hi), var(--fresh) 62%); }
+.cell.s2::before { opacity: 1; background: radial-gradient(circle at 35% 30%, var(--rot-hi), var(--rot) 66%); }
+.cell .t { position: absolute; inset: 0; display: grid; place-items: center; color: #f4f8ea; font-size: clamp(12px, 3.4vw, 17px); font-weight: 500; }
+.cell.new { outline: 3px solid var(--accent); outline-offset: 1px; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 0.6rem 1.6rem; margin-top: 1.6rem; padding: 0; list-style: none; }
+.legend li { display: flex; align-items: center; gap: 0.6rem; font-size: 0.95rem; }
+.legend .cell { width: 30px; border-radius: 7px; }
+.legend .mono { color: var(--muted); }
+
+.points { display: grid; gap: 1.1rem; margin: 1.4rem 0 0; padding: 0; list-style: none; }
+.points li { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 1rem 1.15rem; }
+.points p { margin: 0; }
+
+.strips { display: grid; gap: 1.4rem; margin-top: 1.8rem; }
+.strip { display: flex; gap: 5px; margin-bottom: 0.6rem; }
+.strip .cell { width: min(52px, 13vw); flex: 0 0 auto; }
+.cap { font-size: 0.95rem; color: var(--muted); margin: 0; }
+.cap b { color: var(--ink); }
+.ans { font: 500 0.95em var(--font-mono); color: var(--accent); }
+
+/* stepper */
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 1.1rem; }
+.presets { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.1rem; }
+.btn { font: 500 13px/1 var(--font-mono); color: var(--ink); background: var(--surface); border: 1.5px solid var(--ink); border-radius: 8px; padding: 0.6rem 0.85rem; cursor: pointer; }
+.btn:hover:not(:disabled) { background: var(--mark); }
+.btn[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover:not(:disabled) { filter: brightness(1.08); background: var(--accent); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.board { --cols: 3; display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 56px)); gap: 5px; justify-content: center; margin: 0.4rem 0 1.1rem; }
+button.cell { cursor: pointer; }
+.controls { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 1.1rem; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; margin-bottom: 1rem; }
+.stat { border-top: 1.5px solid var(--ink); padding-top: 0.4rem; }
+.stat .k { display: block; font: 500 11.5px/1.3 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.stat .v { font: 500 1.6rem/1.2 var(--font-mono); font-variant-numeric: tabular-nums; }
+.queue { font-size: 0.92rem; margin-bottom: 1rem; }
+.queue .k { color: var(--muted); display: block; margin-bottom: 0.3rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 0.35rem; min-height: 1.9rem; }
+.chip { font: 400 12.5px/1 var(--font-mono); background: var(--mark); border-radius: 5px; padding: 0.35rem 0.5rem; }
+.verdict { min-height: 3.2rem; font-weight: 500; margin: 0; padding: 0.7rem 0.9rem; border-radius: 10px; background: var(--empty); }
+.verdict.done { background: var(--mark); }
+.hint { font-size: 0.9rem; color: var(--muted); margin: 0.9rem 0 0; }
+
+.tablewrap { overflow-x: auto; margin-top: 1.1rem; border: 1px solid var(--rule); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; font: 400 13.5px/1.4 var(--font-mono); font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 0.55rem 0.8rem; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { font-weight: 500; color: var(--muted); border-bottom: 1px solid var(--rule); }
+tr.cur td { background: var(--mark); }
+
+/* code */
+.codehead { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: 1.1rem 0 0.5rem; }
+.tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.code { background: var(--code-bg); color: var(--code-fg); border-radius: 12px; overflow-x: auto; padding: 0.85rem 0; font: 400 13.5px/1.7 var(--font-mono); }
+.ln { display: grid; grid-template-columns: 2.8rem max-content; min-width: max-content; white-space: pre; }
+.ln .no { color: var(--code-dim); text-align: right; padding-right: 1rem; user-select: none; }
+.ln.hl { background: var(--code-hl); }
+.kw { color: var(--c-kw); } .ty { color: var(--c-ty); } .num { color: var(--c-num); } .cm { color: var(--c-cm); font-style: italic; }
+.steptext { margin: 0.9rem 0 0; }
+.steptext .where { font: 500 12px/1 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 0.35rem; }
+
+ul.plain { margin: 0; padding-left: 1.2rem; }
+ul.plain li { margin-bottom: 0.7rem; max-width: 65ch; }
+.cplx { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1rem; }
+.cplx > div { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 1rem 1.15rem; min-width: 0; }
+.cplx .big { font: 500 1.7rem/1.2 var(--font-mono); margin: 0 0 0.3rem; }
+.cplx p:last-child { margin: 0; font-size: 0.95rem; color: var(--muted); }
+footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1.5px dashed var(--rule); color: var(--muted); font-size: 0.9rem; }
+
+@media (max-width: 520px) {
+  body { font-size: 15.5px; padding-top: 1.5rem; }
+  .panel { padding: 0.9rem 0.8rem; }
+  .stat .v { font-size: 1.35rem; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<main class="wrap">
+  <header>
+    <p class="eyebrow">Grid BFS · LeetCode 994</p>
+    <h1>Rotting Oranges</h1>
+    <p class="lede">Each minute, every fresh orange that touches a rotten one (up, down, left or right) rots too. How many minutes until nothing is fresh? If some orange can never rot, the answer is -1.</p>
+    <ul class="legend" aria-label="Cell values">
+      <li><span class="cell s0"></span><span><span class="mono">0</span> empty cell</span></li>
+      <li><span class="cell s1"></span><span><span class="mono">1</span> fresh orange</span></li>
+      <li><span class="cell s2"></span><span><span class="mono">2</span> rotten orange</span></li>
+    </ul>
+  </header>
+
+  <section id="slow">
+    <h2>The slow idea first</h2>
+    <p>Simulate it literally. Each minute, scan the whole grid and rot every fresh orange that has a rotten neighbour. Use a copy of the grid so oranges that rot this minute do not spread in the same minute. Stop when a scan changes nothing.</p>
+    <p>That is correct, but wasteful. In a long snake of oranges the rot takes about <code>n·m</code> minutes, and every minute re-scans <code>n·m</code> cells. The cost grows like <code>(n·m)²</code>. Most of those scans look at oranges that cannot possibly change, because only an orange that rotted in the previous minute can rot a new one.</p>
+  </section>
+
+  <section id="insight">
+    <h2>The insight</h2>
+    <ul class="points">
+      <li><h3>Rot spreads in waves</h3><p>Every rotten orange acts at the same moment. The number of minutes is the number of waves, not the number of oranges.</p></li>
+      <li><h3>A wave is a BFS level</h3><p>The oranges that rot at minute <code>k</code> are the fresh ones that are exactly <code>k</code> steps from the nearest rotten orange. Breadth-first search visits cells in order of distance, so each level of the search is one minute.</p></li>
+      <li><h3>Start from all rotten oranges at once</h3><p>Put every rotten orange into the queue before the search begins. Each fresh orange then receives the distance to its nearest rotten neighbour automatically. Running a separate search from each rotten orange would repeat work and still need a minimum at the end.</p></li>
+    </ul>
+    <p style="margin-top:1.4rem">So the answer is the largest of those distances, taken over every orange that can rot. If a fresh orange has no path to a rotten one, return -1.</p>
+    <p><b>Why not DFS?</b> Depth-first search follows one route as deep as it can, so it often reaches a cell by a long route first and stamps it with a late time. BFS is the tool for shortest distance on an unweighted grid.</p>
+
+    <div class="strips" aria-label="Three one-row examples">
+      <div><div class="strip" id="stripA"></div><p class="cap"><b>One source.</b> The rot walks along the row, one cell per minute. Answer <span class="ans"></span>.</p></div>
+      <div><div class="strip" id="stripB"></div><p class="cap"><b>Two sources.</b> The middle orange is reached from whichever side is closer. Both rotten oranges start in the queue at minute 0, so the search handles this without extra work. Answer <span class="ans"></span>.</p></div>
+      <div><div class="strip" id="stripC"></div><p class="cap"><b>Cut off.</b> The empty cell blocks the rot, so the last orange stays fresh. Answer <span class="ans"></span>.</p></div>
+    </div>
+  </section>
+
+  <section id="watch">
+    <h2>Watch it run</h2>
+    <p>Step through the search. The number inside a rotten orange is the minute it rotted. The outlined oranges are the ones that rotted in the current minute, which is exactly what the queue holds.</p>
+    <div class="panel">
+      <div class="presets" id="presets" role="group" aria-label="Example grids"></div>
+      <div class="board" id="board"></div>
+      <div class="controls">
+        <button class="btn" id="reset" type="button">Reset</button>
+        <button class="btn" id="back" type="button">Back</button>
+        <button class="btn primary" id="next" type="button">Next minute</button>
+        <button class="btn" id="play" type="button">Play</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><span class="k">Minute</span><span class="v" id="stMin">0</span></div>
+        <div class="stat"><span class="k">Fresh left</span><span class="v" id="stFresh">0</span></div>
+        <div class="stat"><span class="k">Rotted now</span><span class="v" id="stNow">0</span></div>
+      </div>
+      <div class="queue"><span class="k" id="qLabel">Queue</span><div class="chips" id="qList"></div></div>
+      <p class="verdict" id="verdict" aria-live="polite"></p>
+      <p class="hint">Click any cell to cycle it through empty, fresh and rotten, then step again. Coordinates are (row, column) from 0.</p>
+    </div>
+
+    <div class="tablewrap"><table aria-label="Minute by minute trace of the current grid">
+      <thead><tr><th>Minute</th><th>Queue at start</th><th>Rotted</th><th>Fresh left</th></tr></thead>
+      <tbody id="trace"></tbody>
+    </table></div>
+  </section>
+
+  <section id="code">
+    <h2>The C++ solution</h2>
+    <p>This is the whole function. Pick a step to see which lines it covers. The headers it needs are <code>&lt;queue&gt;</code> and <code>&lt;vector&gt;</code>.</p>
+    <div class="tabs" id="tabs" role="group" aria-label="Walkthrough steps"></div>
+    <div class="steptext" id="stepText"></div>
+    <div class="codehead"><span class="muted mono" style="font-size:12.5px">orangesRotting.cpp</span><button class="btn" id="copy" type="button">Copy</button></div>
+    <div class="code" id="codeBox" tabindex="0" role="region" aria-label="C++ source"></div>
+    <p class="hint">Compiled with C++17 and checked on five grids with expected answers 4, -1, 0, 0 and -1.</p>
+  </section>
+
+  <section id="cost">
+    <h2>Complexity</h2>
+    <div class="cplx">
+      <div><p class="big">O(n·m)</p><p><b>Time.</b></p><p>An orange is marked rotten at the moment it is pushed, so it enters the queue at most once. Each queued orange checks four neighbours, and the first scan visits every cell once.</p></div>
+      <div><p class="big">O(n·m)</p><p><b>Space.</b></p><p>The queue can hold a large share of the grid, for example when most cells start rotten. The grid itself is changed in place, so copy it first if the caller needs the original.</p></div>
+    </div>
+  </section>
+
+  <section id="traps">
+    <h2>Mistakes to watch for</h2>
+    <ul class="plain">
+      <li><b>Marking at pop instead of at push.</b> Several neighbours can queue the same orange in one minute, and the fresh count then drops more than once for it.</li>
+      <li><b>Calling <code>q.size()</code> inside the loop.</b> The size changes as you push, so next-minute oranges leak into this minute. Read it once before the inner loop.</li>
+      <li><b>One minute too many.</b> The last level has nothing left to rot, yet a naive counter still adds a minute for it. The <code>fresh &gt; 0</code> check in the loop condition prevents that.</li>
+      <li><b>Forgetting the empty-grid cases.</b> A grid with no fresh oranges returns 0, even when it has no rotten ones either. A grid with a fresh orange and no rotten one returns -1.</li>
+    </ul>
+  </section>
+
+  <section id="next-up">
+    <h2>Same pattern, other problems</h2>
+    <p>Multi-source BFS shows up whenever many starting points spread at the same speed. Good next problems are 01 Matrix (LeetCode 542), Walls and Gates (LeetCode 286) and As Far from Land as Possible (LeetCode 1162).</p>
+  </section>
+
+  <footer>Built as a study aid. The grid stepper runs the same algorithm as the C++ above.</footer>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- the algorithm, mirrored from the C++ so the page can replay it ---------- */
+  function simulate(g0) {
+    var R = g0.length, C = g0[0].length;
+    var g = g0.map(function (r) { return r.slice(); });
+    var rotAt = g0.map(function (r) { return r.map(function (v) { return v === 2 ? 0 : null; }); });
+    var q = [], fresh = 0, i, j;
+    for (i = 0; i < R; i++) for (j = 0; j < C; j++) {
+      if (g[i][j] === 2) q.push([i, j]); else if (g[i][j] === 1) fresh++;
+    }
+    function snap(minute, queue) {
+      return { minute: minute, grid: g.map(function (r) { return r.slice(); }),
+               rotAt: rotAt.map(function (r) { return r.slice(); }), queue: queue.slice(), fresh: fresh };
+    }
+    var frames = [snap(0, q)], minutes = 0;
+    var D = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+    while (q.length && fresh > 0) {
+      var next = [];
+      for (var a = 0; a < q.length; a++) {
+        for (var d = 0; d < 4; d++) {
+          var nx = q[a][0] + D[d][0], ny = q[a][1] + D[d][1];
+          if (nx < 0 || ny < 0 || nx >= R || ny >= C || g[nx][ny] !== 1) continue;
+          g[nx][ny] = 2; rotAt[nx][ny] = minutes + 1; fresh--; next.push([nx, ny]);
+        }
+      }
+      minutes++; q = next; frames.push(snap(minutes, q));
+    }
+    return { frames: frames, answer: fresh === 0 ? minutes : -1 };
+  }
+
+  /* ---------- one-row strips ---------- */
+  function strip(id, row) {
+    var el = document.getElementById(id), s = simulate([row]);
+    var last = s.frames[s.frames.length - 1];
+    row.forEach(function (_, j) {
+      var v = last.grid[0][j], d = document.createElement("span");
+      d.className = "cell s" + v;
+      if (v === 2) d.innerHTML = '<span class="t">' + last.rotAt[0][j] + "</span>";
+      el.appendChild(d);
+    });
+    el.parentNode.querySelector(".ans").textContent = String(s.answer);
+  }
+  strip("stripA", [2, 1, 1, 1, 1]);
+  strip("stripB", [2, 1, 1, 1, 2]);
+  strip("stripC", [2, 1, 0, 1]);
+
+  /* ---------- stepper ---------- */
+  var PRESETS = [
+    { name: "Example 1", grid: [[2, 1, 1], [1, 1, 0], [0, 1, 1]] },
+    { name: "Walled off", grid: [[2, 1, 1], [0, 1, 1], [1, 0, 1]] },
+    { name: "Two sources", grid: [[2, 1, 1, 1, 2], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]] },
+    { name: "Nothing to rot", grid: [[0, 2]] }
+  ];
+  var board = document.getElementById("board"), presetsEl = document.getElementById("presets");
+  var grid, sim, t = 0, timer = null, cells = [], activePreset = -1;
+  var $ = function (id) { return document.getElementById(id); };
+  var btnBack = $("back"), btnNext = $("next"), btnPlay = $("play"), btnReset = $("reset");
+
+  function T() { return sim.frames.length - 1; }
+  function stop() { if (timer) { clearInterval(timer); timer = null; } btnPlay.textContent = "Play"; }
+
+  function build() {
+    board.innerHTML = ""; cells = [];
+    board.style.setProperty("--cols", grid[0].length);
+    for (var r = 0; r < grid.length; r++) for (var c = 0; c < grid[0].length; c++) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "cell"; b.dataset.r = r; b.dataset.c = c;
+      b.innerHTML = '<span class="t"></span>';
+      board.appendChild(b); cells.push(b);
+    }
+  }
+
+  function buildTrace() {
+    var rows = "", f = sim.frames, m;
+    for (m = 0; m < f.length; m++) {
+      var start = m === 0 ? "start" : f[m - 1].queue.length;
+      var rotted = m === 0 ? f[0].queue.length + " (initial)" : f[m].queue.length;
+      rows += '<tr data-m="' + m + '"><td>' + m + "</td><td>" + start + "</td><td>" + rotted + "</td><td>" + f[m].fresh + "</td></tr>";
+    }
+    $("trace").innerHTML = rows;
+  }
+
+  function paint() {
+    var f = sim.frames[t], C = grid[0].length, last = T();
+    var newly = {};
+    if (t > 0) f.queue.forEach(function (p) { newly[p[0] * C + p[1]] = true; });
+    var names = ["empty", "fresh", "rotten"];
+    cells.forEach(function (el, i) {
+      var r = Math.floor(i / C), c = i % C, v = f.grid[r][c];
+      el.className = "cell s" + v + (newly[i] ? " new" : "");
+      el.firstChild.textContent = v === 2 ? String(f.rotAt[r][c]) : "";
+      el.setAttribute("aria-label", "Row " + r + ", column " + c + ": " + names[v] +
+        (v === 2 ? ", rotted at minute " + f.rotAt[r][c] : "") + ". Click to change the starting value.");
+    });
+    $("stMin").textContent = f.minute;
+    $("stFresh").textContent = f.fresh;
+    $("stNow").textContent = t === 0 ? "-" : f.queue.length;
+    $("qLabel").textContent = t === 0 ? "Queue at the start (all rotten oranges)" : "Queue after minute " + t + " (oranges that just rotted)";
+    $("qList").innerHTML = f.queue.length
+      ? f.queue.map(function (p) { return '<span class="chip">(' + p[0] + "," + p[1] + ")</span>"; }).join("")
+      : '<span class="muted">empty</span>';
+    var v = $("verdict");
+    if (t === last) {
+      v.className = "verdict done";
+      v.textContent = sim.answer >= 0
+        ? "The loop ends because no fresh oranges are left. Return " + sim.answer + (sim.answer === 1 ? " minute." : " minutes.")
+        : "The loop ends because the queue is empty, yet " + f.fresh + " fresh " + (f.fresh === 1 ? "orange is" : "oranges are") + " cut off. Return -1.";
+    } else {
+      v.className = "verdict";
+      v.textContent = "Press Next minute to run the next BFS level.";
+    }
+    btnBack.disabled = t === 0; btnReset.disabled = t === 0; btnNext.disabled = t === last;
+    Array.prototype.forEach.call($("trace").children, function (tr) { tr.className = +tr.dataset.m === t ? "cur" : ""; });
+  }
+
+  function recompute() { sim = simulate(grid); t = 0; buildTrace(); paint(); }
+  function load(g, idx) {
+    stop(); grid = g.map(function (r) { return r.slice(); }); activePreset = idx;
+    Array.prototype.forEach.call(presetsEl.children, function (b, i) { b.setAttribute("aria-pressed", String(i === idx)); });
+    build(); recompute();
+  }
+  function randomGrid() {
+    var g;
+    do {
+      g = [];
+      for (var r = 0; r < 6; r++) { var row = []; for (var c = 0; c < 6; c++) { var x = Math.random(); row.push(x < 0.16 ? 0 : x < 0.27 ? 2 : 1); } g.push(row); }
+    } while (!g.some(function (row) { return row.indexOf(2) >= 0; }));
+    return g;
+  }
+
+  PRESETS.forEach(function (p, i) {
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "btn"; b.textContent = p.name; b.setAttribute("aria-pressed", "false");
+    b.addEventListener("click", function () { load(p.grid, i); });
+    presetsEl.appendChild(b);
+  });
+  var rnd = document.createElement("button");
+  rnd.type = "button"; rnd.className = "btn"; rnd.textContent = "Random 6×6";
+  rnd.addEventListener("click", function () { load(randomGrid(), -1); });
+  presetsEl.appendChild(rnd);
+
+  board.addEventListener("click", function (e) {
+    var b = e.target.closest(".cell"); if (!b) return;
+    stop(); var r = +b.dataset.r, c = +b.dataset.c;
+    grid[r][c] = (grid[r][c] + 1) % 3; recompute();
+  });
+  btnNext.addEventListener("click", function () { stop(); if (t < T()) { t++; paint(); } });
+  btnBack.addEventListener("click", function () { stop(); if (t > 0) { t--; paint(); } });
+  btnReset.addEventListener("click", function () { stop(); t = 0; paint(); });
+  btnPlay.addEventListener("click", function () {
+    if (timer) { stop(); return; }
+    if (t >= T()) { t = 0; paint(); }
+    btnPlay.textContent = "Pause";
+    timer = setInterval(function () { if (t < T()) { t++; paint(); } if (t >= T()) stop(); }, 900);
+  });
+  load(PRESETS[0].grid, 0);
+
+  /* ---------- code walkthrough ---------- */
+  var CODE = [
+    "int orangesRotting(vector<vector<int>>& grid) {",
+    "    int n = grid.size(), m = grid[0].size(), fresh = 0, minutes = 0;",
+    "    queue<pair<int,int>> q;",
+    "    for (int i = 0; i < n; i++)",
+    "        for (int j = 0; j < m; j++) {",
+    "            if (grid[i][j] == 2) q.push({i, j});",
+    "            else if (grid[i][j] == 1) fresh++;",
+    "        }",
+    "    int dx[] = {1, -1, 0, 0}, dy[] = {0, 0, 1, -1};",
+    "    while (!q.empty() && fresh > 0) {",
+    "        for (int sz = q.size(); sz > 0; sz--) {      // one BFS level = one minute",
+    "            auto [x, y] = q.front(); q.pop();",
+    "            for (int d = 0; d < 4; d++) {",
+    "                int nx = x + dx[d], ny = y + dy[d];",
+    "                if (nx < 0 || ny < 0 || nx >= n || ny >= m || grid[nx][ny] != 1) continue;",
+    "                grid[nx][ny] = 2;",
+    "                fresh--;",
+    "                q.push({nx, ny});",
+    "            }",
+    "        }",
+    "        minutes++;",
+    "    }",
+    "    return fresh == 0 ? minutes : -1;",
+    "}"
+  ];
+  function range(a, b) { var o = []; for (var i = a; i <= b; i++) o.push(i); return o; }
+  var STEPS = [
+    { tab: "Scan", lines: range(2, 8), text: "Walk the grid once. Every rotten orange (2) goes into the queue, because they all start spreading at minute 0. Count the fresh oranges (1) so we know when we are done and whether any are left behind." },
+    { tab: "Directions", lines: [9], text: "dx and dy list the four moves: down, up, right and left. Looping d from 0 to 3 visits every neighbour without writing the same code four times." },
+    { tab: "Loop", lines: [10], text: "One pass of this loop is one minute. It runs while the queue still has oranges that can spread and at least one fresh orange remains. Checking fresh here stops the clock the moment the last orange rots, so no empty extra minute is counted." },
+    { tab: "Freeze the level", lines: [11], text: "q.size() is read once, before any pushes. That many oranges were rotten at the start of this minute. Oranges pushed during the loop can only rot others next minute, so they wait for the next pass." },
+    { tab: "Spread", lines: range(12, 19), text: "Pop an orange and look at its four neighbours. Skip anything outside the grid or not fresh. A fresh neighbour rots immediately, the fresh count drops, and it joins the queue. Marking it at push time means no orange is ever queued twice." },
+    { tab: "Tick", lines: [21], text: "The whole level is finished, so one minute has passed." },
+    { tab: "Verdict", lines: [23], text: "If the fresh count reached zero, minutes is the answer. If the queue ran dry while fresh oranges remain, empty cells cut them off from the rot, so return -1." }
+  ];
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function highlight(line) {
+    var re = /(\/\/.*$)|\b(int|auto|for|while|if|else|continue|return)\b|\b(vector|queue|pair)\b|\b(\d+)\b/g;
+    var out = "", last = 0, m;
+    while ((m = re.exec(line))) {
+      out += esc(line.slice(last, m.index));
+      out += '<span class="' + (m[1] ? "cm" : m[2] ? "kw" : m[3] ? "ty" : "num") + '">' + esc(m[0]) + "</span>";
+      last = m.index + m[0].length;
+    }
+    return out + esc(line.slice(last));
+  }
+  var codeBox = $("codeBox");
+  codeBox.innerHTML = CODE.map(function (l, i) {
+    return '<div class="ln" data-n="' + (i + 1) + '"><span class="no">' + (i + 1) + '</span><span class="src">' + highlight(l) + "</span></div>";
+  }).join("");
+  var tabsEl = $("tabs");
+  function pick(k) {
+    var s = STEPS[k], set = {};
+    s.lines.forEach(function (n) { set[n] = true; });
+    Array.prototype.forEach.call(codeBox.children, function (ln) { ln.classList.toggle("hl", !!set[ln.dataset.n]); });
+    Array.prototype.forEach.call(tabsEl.children, function (b, i) { b.setAttribute("aria-pressed", String(i === k)); });
+    var a = s.lines[0], z = s.lines[s.lines.length - 1];
+    $("stepText").innerHTML = '<span class="where">' + (a === z ? "Line " + a : "Lines " + a + " to " + z) + "</span>" + esc(s.text);
+  }
+  STEPS.forEach(function (s, k) {
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "btn"; b.textContent = s.tab;
+    b.addEventListener("click", function () { pick(k); });
+    tabsEl.appendChild(b);
+  });
+  pick(0);
+
+  $("copy").addEventListener("click", function () {
+    var btn = $("copy");
+    function reset() { setTimeout(function () { btn.textContent = "Copy"; }, 1800); }
+    function select() {
+      var r = document.createRange(); r.selectNodeContents(codeBox);
+      var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      btn.textContent = "Selected: press Cmd/Ctrl+C"; reset();
+    }
+    try {
+      navigator.clipboard.writeText(CODE.join("\n")).then(function () { btn.textContent = "Copied"; reset(); }, select);
+    } catch (e) { select(); }
+  });
+})();
+</script>
