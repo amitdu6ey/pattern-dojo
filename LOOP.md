@@ -20,6 +20,9 @@ Read this first on every run. One run advances the platform by exactly one ROADM
 
 ## Hard rules
 - Never run `git push`, publish an Artifact, create accounts, or enter credentials.
+- The loop never fetches from LeetCode or any other site. Live fetching is a command the user runs. Build and
+  test the fetcher against recorded fixtures that you write by hand and mark clearly as samples. Never present
+  fixture data as real.
 - Python is stdlib only (3.9). C++ is C++17 built with `g++`. No pip, no npm, no downloads.
   The static site may load Google Fonts and nothing else from the network.
 - Do not spawn subagents. Keep chat output short; put detail in the repo.
@@ -33,8 +36,13 @@ Read this first on every run. One run advances the platform by exactly one ROADM
   inputs where that is feasible. A solution that has not run is not done.
 - Every problem page covers: the idea in plain language, why the naive approach is slow, the pattern name,
   progressive hints, an annotated solution, complexity with the reason, and the common mistakes.
-- Visual design: reuse the tokens and components from `seed/rotting-oranges.html`. Light and dark themes,
-  works at 400px wide, keyboard accessible, no horizontal page scroll. No framework, no build tooling beyond `tools/build.py`.
+- The interface is minimal. This is a hard requirement from the user. One column, plain type, generous
+  whitespace, and only the controls a screen needs. No hero banners, badges, stat tiles, decorative cards,
+  gradients, icons-for-decoration, or animation beyond what teaches (the grid stepper is the exception). Prefer
+  a list to a grid of cards, and a link to a button. Every element must earn its place; when unsure, leave it out.
+  Reuse only the palette tokens and fonts from `seed/rotting-oranges.html`, not its panels and chrome.
+- Light and dark themes, works at 400px wide, keyboard accessible, no horizontal page scroll.
+  No framework, no build tooling beyond `tools/build.py`.
 - A new problem should need at most four files in its folder. If it needs more, simplify the tooling first.
 
 ## Where things are

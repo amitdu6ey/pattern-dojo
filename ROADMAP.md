@@ -8,14 +8,32 @@ The loop takes the first unchecked item each run (see `LOOP.md`).
 - [ ] P0.1 `tools/build.py` (stdlib only): reads `problems/*/problem.json`, compiles each `solution.cpp` with
       g++ against `tests.json` cases, fails on any mismatch, and writes `site/`. Design it so a new problem needs
       at most four files. Include a `--check` flag that builds and tests without writing output.
-- [ ] P0.2 Shared theme and layout, extracted from `seed/rotting-oranges.html` (tokens, light and dark, nav, footer),
-      plus an `index.html` that lists patterns and problems.
+- [ ] P0.2 Shared theme and layout, extracted from `seed/rotting-oranges.html` (palette tokens and fonts only, light
+      and dark), kept minimal: one column, plain list navigation, no decoration. Plus an `index.html` that lists
+      patterns and problems as a simple list.
 - [ ] P0.3 Problem page template: statement, idea, hints that reveal one at a time, annotated solution with
       step tabs, complexity, mistakes. Port Rotting Oranges in as problem 001, including its grid stepper.
 - [ ] P0.4 Progress tracking in `localStorage` (solved, attempted, needs review) and a review queue using the
       Leitner intervals 1, 3, 7, 16, 35 and 90 days, shown on the home page.
 - [ ] P0.5 README with a hero, feature list, quick start and project map, plus a GitHub Pages workflow file
       (written only; never pushed).
+- [ ] P0.6 Trending pipeline: `tools/fetch_trending.py` (stdlib `urllib`). For each company in
+      `tools/companies.json` (Microsoft, Google, Meta/Facebook, Stripe, Deliveroo, ShareChat, Amazon, Intuit,
+      LinkedIn), read recent LeetCode discussion posts tagged with that company in the interview question and
+      experience categories, extract the LeetCode problems each post mentions (problem links and "LC <number>"
+      mentions), count mentions per problem per company inside a configurable window (default 90 days), and write
+      `data/trending.json` (company -> ranked problems with mention count and date of the latest mention).
+      Keep only titles, slugs, counts and links, never post bodies. Be polite: one request at a time, a delay
+      between requests, a clear User-Agent, a hard cap on pages. Write and test it against hand-written recorded
+      fixtures in `tools/fixtures/`. The loop must NOT call LeetCode. Ship `data/trending.json` as a clearly
+      labelled sample built from the fixtures, never presented as real data. Document
+      `python3 tools/fetch_trending.py --live` in the README as a command the user runs, and note that LeetCode's
+      terms may limit automated access, so the user should check them first.
+- [ ] P0.7 Trending UI: a "Trending by company" section on the home page with company tabs, ranked problems with
+      mention count and last-seen date, a "last updated" stamp, and a "sample data" banner when the data is the
+      fixture sample. Each row links to the LeetCode problem and, when we have our own page, to that page.
+- [ ] P0.8 Map trending problems to patterns (`tools/patterns.json`; unknown ones show "unmapped") and add a
+      "Practice what's trending" filter that orders our problems by mentions at the chosen company.
 
 ## Phase 1: patterns (each problem is one item: idea, visual if useful, tested solution, page)
 Problem titles are well-known interview problems. Write every statement in your own words.
