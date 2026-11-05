@@ -14,8 +14,10 @@ Read this first on every run. One run advances the platform by exactly one ROADM
    (`git commit -am "lock: <item id>"`) and `git push origin main`, so any other runner sees the lock.
 4. Do the item. One item per run. If it is too big for one run, split it into sub-items in `ROADMAP.md`,
    and do only the first.
-5. Gate: once `tools/build.py` exists, `python3 tools/build.py --check` must pass before you commit.
-   Never commit a failing build or a failing solution.
+5. Gate: run `python3 -m unittest discover -s tools -p "test_*.py"` and `python3 tools/runner.py --selftest`, and once
+   `tools/build.py` exists also `python3 tools/build.py --check`. All must pass before you commit.
+   Never commit a failing build or a failing solution. Run gate commands with `&&` and never pipe them through
+   `tail` or `grep`, because a pipe hides the exit code. If a gate flakes, find the cause; do not just rerun it.
 6. Tick the item in `ROADMAP.md`, append one line to `LOG.md` (date, item, what changed, how it was verified),
    set `state.json` to `idle` with `last_run`, then `git add -A` and `git commit -m "<item id>: <summary>"`.
    After the commit, run `git push origin main`. Push only when the gate has passed. If the push is rejected, run

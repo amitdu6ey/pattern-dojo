@@ -87,7 +87,24 @@ def current_rss(pid):
 
 # ---- running ----------------------------------------------------------------------------------------------
 
+_warmed = set()
+
+
 def run_exe(exe, stdin_text="", time_limit_ms=2000, memory_limit_mb=256, output_cap=OUTPUT_CAP):
+    """Run a compiled program under limits. Returns the dict described in _run.
+
+    macOS scans a freshly compiled executable the first time it launches (about 120 ms, occasionally seconds), which
+    would be charged to the learner's time. One untimed launch with empty input, under the same memory watchdog,
+    absorbs that before the timed run.
+    """
+    key = os.path.realpath(exe)
+    if key not in _warmed:
+        _run(exe, "", 3000, memory_limit_mb, output_cap)
+        _warmed.add(key)
+    return _run(exe, stdin_text, time_limit_ms, memory_limit_mb, output_cap)
+
+
+def _run(exe, stdin_text, time_limit_ms, memory_limit_mb, output_cap):
     """Run a compiled program under limits and return a dict:
 
     status      OK, TLE, MLE, RE (crash or non-zero exit) or OLE (too much output)
@@ -217,6 +234,12 @@ def _selftest():
         r = run_exe(exe, _SNIPPETS["sum"][1])
         check("OK: reads input, prints 7", ok and r["status"] == "OK" and same_output("7", r["stdout"]),
               "%.0f ms, %.1f MB" % (r["wall_ms"], r["peak_mb"]))
+
+        ok, msg, exe = build("sum")
+        _warmed.discard(os.path.realpath(exe))
+        r = run_exe(exe, _SNIPPETS["sum"][1])
+        check("First run of a fresh binary is not penalised", ok and r["status"] == "OK" and r["wall_ms"] < 60,
+              "%.0f ms" % r["wall_ms"])
 
         ok, msg, exe = build("spin")
         r = run_exe(exe, "", time_limit_ms=300)
