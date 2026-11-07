@@ -186,6 +186,22 @@ class ValidatorTests(unittest.TestCase):
         self.mutate(lambda d: d["interview"]["clarifications"][0].update(match="("))
         self.assertTrue(any("regex" in e for e in self.errors()))
 
+    def test_walkthrough_needs_three_steps(self):
+        self.mutate(lambda d: d.update(walkthrough=d["walkthrough"][:2]))
+        self.assertTrue(any("at least 3 steps" in e for e in self.errors()))
+
+    def test_walkthrough_lines_must_fit_the_solution(self):
+        self.mutate(lambda d: d["walkthrough"][0].update(lines=[1, 99]))
+        self.assertTrue(any("walkthrough[0] lines" in e for e in self.errors()))
+
+    def test_walkthrough_lines_must_be_ordered(self):
+        self.mutate(lambda d: d["walkthrough"][0].update(lines=[5, 3]))
+        self.assertTrue(any("walkthrough[0] lines" in e for e in self.errors()))
+
+    def test_walkthrough_tab_names_are_unique(self):
+        self.mutate(lambda d: d["walkthrough"][1].update(tab=d["walkthrough"][0]["tab"]))
+        self.assertTrue(any("tab names must be unique" in e for e in self.errors()))
+
     def test_nudges_exactly_two(self):
         self.mutate(lambda d: d["interview"]["nudges"].append("one more"))
         self.assertTrue(any("nudges" in e for e in self.errors()))

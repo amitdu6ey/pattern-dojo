@@ -6,6 +6,7 @@ Links are relative, so the site works from any folder (GitHub Pages serves it un
 import html
 import json
 import os
+import re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REPO_BLOB = "https://github.com/amitdu6ey/pattern-dojo/blob/main/"
@@ -73,7 +74,44 @@ def pattern_page(pattern, problems):
     return page(pattern["name"], body, depth=2)
 
 
-def problem_page(p, pattern_name):
+_CPP_TOKEN = re.compile(
+    r"(?P<cm>//.*$)|(?P<pp>^\s*#.*$)"
+    r"|\b(?P<kw>int|long|short|char|bool|double|float|void|auto|const|static|unsigned|signed|for|while|do|if|else|"
+    r"continue|break|return|struct|class|using|namespace|true|false|nullptr|new|delete|template|typename)\b"
+    r"|\b(?P<ty>vector|queue|pair|unordered_map|unordered_set|map|set|string|stack|deque|priority_queue|array|"
+    r"size_t|tuple)\b"
+    r"|\b(?P<num>\d+)\b")
+
+
+def highlight_cpp(line):
+    """HTML for one line of C++ with a few token classes. Only the pieces between tokens and the tokens are escaped."""
+    out, last = [], 0
+    for m in _CPP_TOKEN.finditer(line):
+        out.append(esc(line[last:m.start()]))
+        out.append('<span class="%s">%s</span>' % (m.lastgroup, esc(m.group(0))))
+        last = m.end()
+    out.append(esc(line[last:]))
+    return "".join(out)
+
+
+def walkthrough_html(steps, code):
+    """The annotated solution: step tabs, the explanation of each step, and the numbered code. problem.js wires it up."""
+    lines = code.splitlines()
+    tabs = "".join('<button type="button" class="wt-tab" data-step="%d" aria-pressed="false">%s</button>' % (i, esc(s["tab"]))
+                   for i, s in enumerate(steps))
+    texts = "".join('<p class="wt-text" data-step="%d" data-first="%d" data-last="%d" hidden><span class="where">%s</span>%s</p>'
+                    % (i, s["lines"][0], s["lines"][1],
+                       "Line %d" % s["lines"][0] if s["lines"][0] == s["lines"][1]
+                       else "Lines %d to %d" % tuple(s["lines"]), esc(s["text"]))
+                    for i, s in enumerate(steps))
+    code_html = "".join('<div class="ln" data-n="%d"><span class="no">%d</span><span class="src">%s</span></div>'
+                        % (i + 1, i + 1, highlight_cpp(l)) for i, l in enumerate(lines))
+    return ('<h2>Solution walkthrough</h2>\n<div class="steps" id="wtTabs" role="group" aria-label="Walkthrough steps">%s</div>\n'
+            '<div class="wt-texts">%s</div>\n<div class="codeview" role="region" aria-label="Reference solution in C++">%s</div>\n'
+            % (tabs, texts, code_html))
+
+
+def problem_page(p, pattern_name, solution_code=""):
     """The problem page: a split view with the problem on the left and the editor on the right.
 
     The explanation (idea, complexity, mistakes) is in the page but hidden. web/problem.js shows it once the learner
@@ -88,6 +126,7 @@ def problem_page(p, pattern_name):
                     for i, h in enumerate(p["hints"]))
     mistakes = "".join("<li>%s</li>" % esc(m) for m in p["mistakes"])
     c = p["complexity"]
+    walkthrough = walkthrough_html(p["walkthrough"], solution_code) if p.get("walkthrough") and solution_code else ""
     left = (
         '<p><a class="crumb" href="../../patterns/%s/index.html">← %s</a></p>\n'
         '<h1 style="margin-top:0.8rem">%s</h1>\n<p class="tags">%s</p>\n'
@@ -103,7 +142,7 @@ def problem_page(p, pattern_name):
         "<h2>Complexity</h2>\n"
         "<p><span class=\"mono\">Time %s.</span> %s</p>\n<p><span class=\"mono\">Space %s.</span> %s</p>\n"
         "<h2>Common mistakes</h2>\n<ul class=\"plain\">%s</ul>\n"
-        "</section>\n"
+        "%s</section>\n"
         '<p class="note"><button class="link" id="giveUp" type="button">Give up and show the explanation</button>'
         '<span id="giveUpAsk" hidden>Show it now? This counts as not solved. '
         '<button class="link" id="giveUpYes" type="button">Yes, show it</button> '
@@ -111,7 +150,7 @@ def problem_page(p, pattern_name):
     ) % (esc(p["pattern"]), esc(pattern_name), esc(p["title"]), esc(tags), esc(p["statement"]),
          esc(p["input_format"]), esc(p["output_format"]), examples, constraints, hints, len(p["hints"]),
          esc(p["idea"]), esc(p["naive"]), esc(c["time"]), esc(c["time_why"]), esc(c["space"]), esc(c["space_why"]),
-         mistakes)
+         mistakes, walkthrough)
     right = (
         '<div class="rowbar"><span class="mono">C++</span><span>Starter code</span></div>\n'
         '<textarea class="code" id="editor" spellcheck="false" aria-label="C++ solution">%s</textarea>\n'

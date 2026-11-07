@@ -141,6 +141,72 @@ class ProblemPageTests(unittest.TestCase):
             self.assertRegex(src, r"\b%s:\s*function" % name, "progress.js has no %s" % name)
 
 
+class HighlightTests(unittest.TestCase):
+    def test_comment_keyword_and_number(self):
+        out = render.highlight_cpp("int x = 5; // note")
+        self.assertIn('<span class="kw">int</span>', out)
+        self.assertIn('<span class="num">5</span>', out)
+        self.assertIn('<span class="cm">// note</span>', out)
+
+    def test_angle_brackets_are_escaped(self):
+        out = render.highlight_cpp("vector<vector<int>>& g")
+        self.assertIn('<span class="ty">vector</span>', out)
+        self.assertIn("&lt;", out)
+        self.assertNotIn("<vector", out)
+        self.assertIn("&amp;", out)
+
+    def test_preprocessor_line(self):
+        self.assertEqual(render.highlight_cpp("#include <queue>"), '<span class="pp">#include &lt;queue&gt;</span>')
+
+    def test_identifiers_that_start_with_a_keyword_are_untouched(self):
+        self.assertNotIn('class="kw"', render.highlight_cpp("interval = 3"))
+        self.assertNotIn('class="num"', render.highlight_cpp("x2 = y"))
+
+    def test_html_in_a_comment_is_escaped(self):
+        out = render.highlight_cpp("// <b>x</b>")
+        self.assertNotIn("<b>", out)
+        self.assertIn("&lt;b&gt;", out)
+
+
+class WalkthroughTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.p, _ = problem.load(FIXTURE)
+        with open(os.path.join(FIXTURE, "solution.cpp")) as f:
+            cls.code = f.read()
+        cls.out = render.problem_page(cls.p, "Arrays and hashing", cls.code)
+
+    def test_it_is_inside_the_hidden_explanation(self):
+        start = self.out.index('<section id="after" hidden>')
+        self.assertTrue(start < self.out.index("Solution walkthrough") < self.out.index("</section>", start))
+
+    def test_one_tab_and_one_text_per_step(self):
+        n = len(self.p["walkthrough"])
+        self.assertEqual(self.out.count('class="wt-tab"'), n)
+        self.assertEqual(self.out.count('class="wt-text"'), n)
+        for i, s in enumerate(self.p["walkthrough"]):
+            self.assertIn('data-step="%d" data-first="%d" data-last="%d"' % (i, s["lines"][0], s["lines"][1]), self.out)
+            self.assertIn(render.esc(s["text"]), self.out)
+
+    def test_every_line_of_the_solution_is_shown_and_numbered(self):
+        lines = self.code.splitlines()
+        self.assertEqual(self.out.count('class="ln"'), len(lines))
+        self.assertIn('data-n="%d"' % len(lines), self.out)
+        self.assertIn("&lt;unordered_map&gt;", self.out)
+        self.assertNotIn("#include <unordered_map>", self.out)
+
+    def test_no_walkthrough_without_the_solution_code(self):
+        self.assertNotIn("Solution walkthrough", render.problem_page(self.p, "Arrays and hashing"))
+
+    def test_classes_used_by_problem_js_exist_in_the_page(self):
+        with open(os.path.join(ROOT, "web", "problem.js")) as f:
+            selectors = re.findall(r'querySelectorAll\("([^"]+)"\)', f.read())
+        self.assertTrue(selectors)
+        for sel in selectors:
+            for token in re.findall(r"[.#]([\w-]+)", sel):
+                self.assertIn(token, self.out, "problem.js selects %r but the page has no %r" % (sel, token))
+
+
 class SiteTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

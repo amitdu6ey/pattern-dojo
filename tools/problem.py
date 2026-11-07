@@ -135,6 +135,27 @@ def validate(path):
         need(isinstance(fu, dict) and _text(fu.get("question")) and _text(fu.get("discussion")), "interview.followup needs question and discussion")
         need(_strings(iv.get("edge_cases"), 2), "interview.edge_cases needs at least 2 strings")
 
+    # walkthrough: steps over lines of solution.cpp
+    wt = p.get("walkthrough")
+    if not (isinstance(wt, list) and len(wt) >= 3):
+        errs.append("walkthrough needs at least 3 steps")
+    else:
+        with open(os.path.join(path, "solution.cpp"), encoding="utf-8") as f:
+            n_lines = len(f.read().splitlines())
+        tabs = []
+        for i, s in enumerate(wt):
+            tag = "walkthrough[%d]" % i
+            if not isinstance(s, dict):
+                errs.append(tag + " must be an object")
+                continue
+            tabs.append(s.get("tab"))
+            need(_text(s.get("tab")) and _text(s.get("text")), tag + " needs tab and text")
+            ln = s.get("lines")
+            ok = (isinstance(ln, list) and len(ln) == 2 and all(isinstance(x, int) and not isinstance(x, bool) for x in ln)
+                  and 1 <= ln[0] <= ln[1] <= n_lines)
+            need(ok, tag + " lines must be [first, last] with 1 <= first <= last <= %d (the length of solution.cpp)" % n_lines)
+        need(len(set(tabs)) == len(tabs), "walkthrough tab names must be unique")
+
     # tests.json
     cases = t.get("cases")
     if not (isinstance(cases, list) and len(cases) >= 5):

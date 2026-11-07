@@ -30,6 +30,7 @@ use is in `tools/fixtures/pair-sum/`. Validate with `python3 tools/problem.py <d
 | `time_limit_ms`, `memory_limit_mb` | integers | Time limit per test, and peak memory limit. |
 | `enforce` | object | `time` and `space` booleans. A dimension set to false needs a written `time_reason` or `space_reason`. |
 | `quiz` | list | At least four multiple-choice questions, including tags `Time complexity` and `Space complexity`. Each has `tag`, `q`, four distinct `options`, `answer` (0 to 3) and `explanation`. |
+| `walkthrough` | list | At least three steps, each `{"tab", "lines": [first, last], "text"}`. Lines are 1-based and refer to `solution.cpp`, which is shown with these steps after the learner solves the problem. |
 | `interview` | object | `clarifications` (at least three, each with a regex `match` and an `answer`), `nudges` (exactly two), `followup` (`question` and `discussion`), `edge_cases` (at least two). |
 
 ## `tests.json`

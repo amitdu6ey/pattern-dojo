@@ -164,6 +164,10 @@ def write_site(problem_dirs, out_dir):
     patterns = render.load_patterns()
     names = {p["id"]: p["name"] for p in patterns}
     problems = [problem.load(d)[0] for d in problem_dirs]
+    code = {}
+    for d, p in zip(problem_dirs, problems):
+        with open(os.path.join(d, "solution.cpp"), encoding="utf-8") as f:
+            code[p["id"]] = f.read()
 
     def put(rel, text):
         path = os.path.join(out_dir, rel)
@@ -178,7 +182,7 @@ def write_site(problem_dirs, out_dir):
     for pat in patterns:
         put("patterns/%s/index.html" % pat["id"], render.pattern_page(pat, [p for p in problems if p["pattern"] == pat["id"]]))
     for p in problems:
-        put("problems/%s/index.html" % p["id"], render.problem_page(p, names.get(p["pattern"], p["pattern"])))
+        put("problems/%s/index.html" % p["id"], render.problem_page(p, names.get(p["pattern"], p["pattern"]), code[p["id"]]))
     index = [{k: p.get(k) for k in ("id", "title", "pattern", "tags", "difficulty", "level")} for p in problems]
     put("data/problems.json", json.dumps({"problems": index}, indent=2) + "\n")
     return len(index)

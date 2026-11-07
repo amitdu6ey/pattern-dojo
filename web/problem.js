@@ -43,6 +43,22 @@
     reveal();
   });
 
+  // walkthrough: step tabs, one explanation at a time, and the lines of the step highlighted in the code
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".wt-tab"));
+  var texts = Array.prototype.slice.call(document.querySelectorAll(".wt-text"));
+  var codeLines = Array.prototype.slice.call(document.querySelectorAll(".codeview .ln"));
+  function pickStep(k) {
+    tabs.forEach(function (b, i) { b.setAttribute("aria-pressed", String(i === k)); });
+    texts.forEach(function (t, i) { t.hidden = i !== k; });
+    var first = +texts[k].getAttribute("data-first"), last = +texts[k].getAttribute("data-last");
+    codeLines.forEach(function (ln) {
+      var n = +ln.getAttribute("data-n");
+      ln.classList.toggle("hl", n >= first && n <= last);
+    });
+  }
+  tabs.forEach(function (b, i) { b.addEventListener("click", function () { pickStep(i); }); });
+  if (tabs.length) pickStep(0);
+
   // editor: Tab inserts four spaces instead of leaving the box
   var editor = document.getElementById("editor");
   editor.addEventListener("keydown", function (e) {
