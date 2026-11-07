@@ -1,0 +1,23 @@
+{
+  "patterns": [
+    {"id": "arrays-and-hashing", "name": "Arrays and hashing"},
+    {"id": "two-pointers", "name": "Two pointers"},
+    {"id": "sliding-window", "name": "Sliding window"},
+    {"id": "binary-search", "name": "Binary search"},
+    {"id": "stack", "name": "Stack"},
+    {"id": "linked-list", "name": "Linked list"},
+    {"id": "trees", "name": "Trees"},
+    {"id": "graphs", "name": "Graphs"},
+    {"id": "union-find", "name": "Union-find"},
+    {"id": "shortest-paths", "name": "Shortest paths"},
+    {"id": "heap", "name": "Heap"},
+    {"id": "intervals", "name": "Intervals"},
+    {"id": "backtracking", "name": "Backtracking"},
+    {"id": "dp-1d", "name": "Dynamic programming 1D"},
+    {"id": "dp-2d", "name": "Dynamic programming 2D"},
+    {"id": "greedy", "name": "Greedy"},
+    {"id": "tries", "name": "Tries"},
+    {"id": "math-and-matrices", "name": "Math and matrices"},
+    {"id": "bit-manipulation", "name": "Bit manipulation"}
+  ]
+}

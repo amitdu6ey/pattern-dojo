@@ -13,9 +13,15 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import gens  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PATTERNS_FILE = os.path.join(ROOT, "web", "patterns.json")
 FILES = ("problem.json", "tests.json", "solution.cpp", "driver.cpp", "brute.cpp")
 DIFFICULTIES = {"easy", "medium", "hard"}
 LEVELS = {"basic", "variant", "combined"}
+
+
+def known_patterns():
+    with open(PATTERNS_FILE, encoding="utf-8") as f:
+        return [x["id"] for x in json.load(f)["patterns"]]
 
 
 def load(path):
@@ -62,6 +68,7 @@ def validate(path):
     need(p.get("id") == os.path.basename(os.path.normpath(path)), "id must equal the folder name")
     for k in ("title", "pattern", "statement", "input_format", "output_format", "idea", "naive", "starter"):
         need(_text(p.get(k)), "%s must be a non-empty string" % k)
+    need(p.get("pattern") in known_patterns(), "pattern must be one of the ids in web/patterns.json")
     need(p.get("difficulty") in DIFFICULTIES, "difficulty must be one of %s" % sorted(DIFFICULTIES))
     need(p.get("level") in LEVELS, "level must be one of %s" % sorted(LEVELS))
     need(_strings(p.get("tags", []) or []), "tags must be a list of strings")

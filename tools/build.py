@@ -2,7 +2,7 @@
 """Check and build the problems. Standard library only. See tools/FORMAT.md for the gates.
 
   python3 tools/build.py --check                  # test every folder in problems/, write nothing
-  python3 tools/build.py                          # test, then write site/problems/ and site/data/ if all pass
+  python3 tools/build.py                          # test, then write site/ if every problem passes
   python3 tools/build.py --check pair-sum         # only the named problem ids
   python3 tools/build.py --check --root tools/fixtures
 
@@ -13,7 +13,6 @@ Gate 3: for each enforced dimension the brute force fails a scale test (TLE for 
 Exit status is 0 only if every problem passes. The site is written only when every problem passes.
 """
 import argparse
-import html
 import json
 import os
 import shutil
@@ -24,6 +23,7 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 import gens  # noqa: E402
 import problem  # noqa: E402
+import render  # noqa: E402
 import runner  # noqa: E402
 
 MAX_ERRORS = 5  # per problem, so one broken program does not flood the output
@@ -160,21 +160,26 @@ def check_problem(path):
 # ---- site output ----------------------------------------------------------------------------------------------
 
 def write_site(problem_dirs, out_dir):
-    """Write a stub page per problem and an index of all problems. Real templates arrive in P0.3."""
-    index = []
-    for d in problem_dirs:
-        p, _ = problem.load(d)
-        page_dir = os.path.join(out_dir, "problems", p["id"])
-        os.makedirs(page_dir, exist_ok=True)
-        with open(os.path.join(page_dir, "index.html"), "w", encoding="utf-8") as f:
-            f.write("<!doctype html>\n<html lang=\"en\"><head><meta charset=\"utf-8\"><title>%s</title></head>\n"
-                    "<body><h1>%s</h1><p>%s</p><p><em>The full problem page arrives with the page template (P0.3).</em></p></body></html>\n"
-                    % (html.escape(p["title"]), html.escape(p["title"]), html.escape(p["statement"])))
-        index.append({k: p.get(k) for k in ("id", "title", "pattern", "tags", "difficulty", "level")})
-    os.makedirs(os.path.join(out_dir, "data"), exist_ok=True)
-    with open(os.path.join(out_dir, "data", "problems.json"), "w", encoding="utf-8") as f:
-        json.dump({"problems": index}, f, indent=2)
-        f.write("\n")
+    """Write the whole site: theme, home, a page per pattern, a page per problem, and data/problems.json."""
+    patterns = render.load_patterns()
+    names = {p["id"]: p["name"] for p in patterns}
+    problems = [problem.load(d)[0] for d in problem_dirs]
+
+    def put(rel, text):
+        path = os.path.join(out_dir, rel)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(text)
+
+    os.makedirs(os.path.join(out_dir, "assets"), exist_ok=True)
+    shutil.copy(os.path.join(ROOT, "web", "theme.css"), os.path.join(out_dir, "assets", "theme.css"))
+    put("index.html", render.home_page(patterns, problems))
+    for pat in patterns:
+        put("patterns/%s/index.html" % pat["id"], render.pattern_page(pat, [p for p in problems if p["pattern"] == pat["id"]]))
+    for p in problems:
+        put("problems/%s/index.html" % p["id"], render.problem_page(p, names.get(p["pattern"], p["pattern"])))
+    index = [{k: p.get(k) for k in ("id", "title", "pattern", "tags", "difficulty", "level")} for p in problems]
+    put("data/problems.json", json.dumps({"problems": index}, indent=2) + "\n")
     return len(index)
 
 
@@ -210,7 +215,7 @@ def main(argv=None):
         return 1
     if not args.check:
         n = write_site(dirs, args.out)
-        print("wrote %d problem page(s) and data/problems.json to %s" % (n, os.path.relpath(args.out)))
+        print("wrote the site (%d problem page(s)) to %s" % (n, os.path.relpath(args.out)))
     return 0
 
 

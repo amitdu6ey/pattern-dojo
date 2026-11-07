@@ -25,7 +25,7 @@ unchecked item each run (see `LOOP.md`).
       Also require the reference to use at most half the time limit on scale tests. Then write `site/` (a stub page
       per problem is enough; the real templates are P0.2 and P0.3). Test it on the fixture with a brute force that
       is accidentally fast.
-- [ ] P0.2 Shared theme and layout from `seed/rotting-oranges.html` (palette tokens and fonts only, light and
+- [x] P0.2 Shared theme and layout from `seed/rotting-oranges.html` (palette tokens and fonts only, light and
       dark), following `design/ui-mock.html`: a single column of plain lists for the home screen, no decoration.
       Plus an `index.html` listing patterns and problems.
 - [ ] P0.3 Problem page as a split view (problem left, editor and results right, each pane scrolling on its own).
