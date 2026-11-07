@@ -56,6 +56,27 @@ ul.rows .meta { color: var(--muted); font: 400 0.82rem var(--font-mono); font-va
 .crumb { font-size: 0.9rem; color: var(--muted); text-decoration: none; }
 .crumb:hover { color: var(--fg); }
 
+/* problem screen: split view. The problem is on the left and the editor on the right; each pane scrolls on its own. */
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); border-top: 1px solid var(--rule); height: calc(100vh - 8rem); min-height: 34rem; margin-top: 0.9rem; }
+.pane { overflow: auto; padding: 1.2rem 1.6rem; }
+.pane.left { border-right: 1px solid var(--rule); }
+.pane.left > * { max-width: 36rem; }
+.pane.right { display: flex; flex-direction: column; gap: 0.8rem; }
+.pane h2 { margin-top: 1.6rem; }
+pre { font: 400 0.86rem/1.6 var(--font-mono); background: var(--code-bg); color: var(--fg); border: 1px solid var(--rule); border-radius: 6px; margin: 0 0 0.6rem; padding: 0.7rem 0.9rem; overflow-x: auto; }
+ul.plain { margin: 0 0 1rem; padding-left: 1.2rem; }
+ul.plain li { margin-bottom: 0.4rem; }
+.hint { border-top: 1px solid var(--rule); padding: 0.55rem 0; }
+.link { font: inherit; background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.rowbar { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem 1rem; font-size: 0.88rem; color: var(--muted); }
+textarea.code { flex: 1; min-height: 12rem; width: 100%; font: 400 0.88rem/1.6 var(--font-mono); background: var(--code-bg); color: var(--fg); border: 1px solid var(--rule); border-radius: 6px; padding: 0.8rem 0.9rem; resize: none; tab-size: 4; white-space: pre; overflow: auto; }
+.actions { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+.btn { font: 500 0.88rem var(--font-mono); border: 1px solid var(--fg); background: none; color: var(--fg); padding: 0.5rem 0.9rem; border-radius: 6px; cursor: pointer; }
+.btn:hover:not(:disabled) { background: var(--code-bg); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+[hidden] { display: none !important; }
+
 footer { margin-top: 3rem; padding-top: 0.8rem; border-top: 1px solid var(--rule); font-size: 0.85rem; color: var(--muted); }
 footer a { margin-right: 1rem; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

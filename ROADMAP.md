@@ -31,7 +31,7 @@ unchecked item each run (see `LOOP.md`).
 - [x] P0.3a Problem 001, Rotting Oranges, as the first real problem in `problems/001-rotting-oranges/`: all five files,
       a serpentine-grid generator (`snake_grid` in `tools/gens.py`) so a minute-by-minute brute force times out,
       a quiz and an interview script. It must pass every gate in `tools/build.py`.
-- [ ] P0.3b Problem page as a split view (problem left, editor and results placeholder right, each pane scrolling on
+- [x] P0.3b Problem page as a split view (problem left, editor and results placeholder right, each pane scrolling on
       its own): statement, example, gated hints that reveal one at a time, complexity and mistakes hidden until
       the learner has solved the problem. Replace the stub in `tools/render.py`. Follow `design/ui-mock.html`.
 - [ ] P0.3c Solution walkthrough on the problem page, locked until the learner has solved the problem and finished

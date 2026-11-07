@@ -172,7 +172,8 @@ def write_site(problem_dirs, out_dir):
             f.write(text)
 
     os.makedirs(os.path.join(out_dir, "assets"), exist_ok=True)
-    shutil.copy(os.path.join(ROOT, "web", "theme.css"), os.path.join(out_dir, "assets", "theme.css"))
+    for asset in ("theme.css", "progress.js", "problem.js"):
+        shutil.copy(os.path.join(ROOT, "web", asset), os.path.join(out_dir, "assets", asset))
     put("index.html", render.home_page(patterns, problems))
     for pat in patterns:
         put("patterns/%s/index.html" % pat["id"], render.pattern_page(pat, [p for p in problems if p["pattern"] == pat["id"]]))

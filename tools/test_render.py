@@ -80,6 +80,67 @@ class RenderTests(unittest.TestCase):
         self.assertIn("Under construction", render.home_page(pats, []))
 
 
+class ProblemPageTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.p, _ = problem.load(FIXTURE)
+        cls.out = render.problem_page(cls.p, "Arrays and hashing")
+
+    def test_split_view_structure(self):
+        for needle in ('class="split"', 'class="pane left"', 'class="pane right"', 'id="editor"', 'class="wrap wide"'):
+            self.assertIn(needle, self.out)
+
+    def test_statement_examples_and_constraints_are_shown(self):
+        self.assertIn("count the pairs of positions", self.out.replace("Count", "count"))
+        self.assertIn("1 5 3 3 2", self.out)
+        self.assertIn("1 &lt;= n &lt;= 200000", self.out)
+
+    def test_hints_start_hidden_and_a_button_reveals_them(self):
+        self.assertEqual(self.out.count('class="hint" hidden'), len(self.p["hints"]))
+        self.assertIn("Show hint 1 of %d" % len(self.p["hints"]), self.out)
+
+    def test_explanation_is_in_the_page_but_hidden(self):
+        self.assertIn('<section id="after" hidden>', self.out)
+        for text in (self.p["idea"], self.p["naive"], self.p["complexity"]["time_why"], self.p["mistakes"][0]):
+            self.assertIn(render.esc(text), self.out)
+        self.assertLess(self.out.index('id="hints"'), self.out.index('<section id="after" hidden>'))
+
+    def test_run_and_submit_are_disabled_until_the_judge_exists(self):
+        self.assertEqual(self.out.count("disabled>"), 2)
+        self.assertIn("local judge", self.out)
+
+    def test_starter_code_is_escaped(self):
+        self.assertIn("#include &lt;vector&gt;", self.out)
+        self.assertNotIn("#include <vector>", self.out)
+
+    def test_scripts_are_linked_relative_to_depth_2(self):
+        self.assertIn('src="../../assets/progress.js"', self.out)
+        self.assertIn('src="../../assets/problem.js"', self.out)
+        self.assertLess(self.out.index("progress.js"), self.out.index("problem.js"))
+
+    def test_untrusted_text_is_escaped(self):
+        evil = dict(self.p, title="<script>alert(1)</script>", statement="a <b>bold</b> claim")
+        out = render.problem_page(evil, "<i>x</i>")
+        self.assertNotIn("<script>alert(1)</script>", out)
+        self.assertNotIn("<b>bold</b>", out)
+        self.assertNotIn("<i>x</i>", out)
+
+    def test_every_element_id_used_by_problem_js_exists_in_the_page(self):
+        with open(os.path.join(ROOT, "web", "problem.js")) as f:
+            ids = set(re.findall(r'getElementById\("([^"]+)"\)', f.read()))
+        self.assertTrue({"problem", "moreHint", "after", "giveUp", "giveUpAsk", "giveUpYes", "giveUpNo", "editor"} <= ids)
+        for i in ids:
+            self.assertIn('id="%s"' % i, self.out, "problem.js uses #%s but the page has no such element" % i)
+
+    def test_progress_js_exposes_the_api_problem_js_uses(self):
+        with open(os.path.join(ROOT, "web", "progress.js")) as f:
+            src = f.read()
+        with open(os.path.join(ROOT, "web", "problem.js")) as f:
+            used = set(re.findall(r"P\.(\w+)\(", f.read()))
+        for name in used:
+            self.assertRegex(src, r"\b%s:\s*function" % name, "progress.js has no %s" % name)
+
+
 class SiteTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -97,7 +158,7 @@ class SiteTests(unittest.TestCase):
             return f.read()
 
     def test_expected_files_exist(self):
-        for rel in ("index.html", "assets/theme.css", "data/problems.json", "problems/pair-sum/index.html",
+        for rel in ("index.html", "assets/theme.css", "assets/progress.js", "assets/problem.js", "data/problems.json", "problems/pair-sum/index.html",
                     "patterns/arrays-and-hashing/index.html", "patterns/graphs/index.html"):
             self.assertTrue(os.path.isfile(os.path.join(self.out, rel)), rel)
 
