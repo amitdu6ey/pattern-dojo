@@ -34,9 +34,13 @@ unchecked item each run (see `LOOP.md`).
 - [x] P0.3b Problem page as a split view (problem left, editor and results placeholder right, each pane scrolling on
       its own): statement, example, gated hints that reveal one at a time, complexity and mistakes hidden until
       the learner has solved the problem. Replace the stub in `tools/render.py`. Follow `design/ui-mock.html`.
-- [ ] P0.3c Solution walkthrough on the problem page, locked until the learner has solved the problem and finished
-      the quiz or gives up: annotated code with step tabs, and the grid stepper ported from
-      `seed/rotting-oranges.html`.
+- [ ] P0.3c Solution walkthrough on the problem page, hidden until the learner has solved the problem (and, once the
+      quiz exists in P0.6, finished it) or gives up: the reference solution as annotated code with step tabs, where
+      each step names a line range and explains it. Steps live in `problem.json` as `walkthrough`, are validated
+      against `solution.cpp`, and are rendered at build time with C++ syntax highlighting.
+- [ ] P0.3d The grid stepper from `seed/rotting-oranges.html` as a reusable visual (`web/viz-grid-bfs.js`), shown inside
+      the walkthrough of problems that set `"visual": "grid-bfs"`. Use predict-then-reveal: the learner predicts
+      which oranges rot next before they are shown.
 - [ ] P0.4 Local judge, `tools/serve.py` (stdlib): serves `site/` and exposes `/api/run` (visible tests only) and
       `/api/submit` (all tests, scale tests included). Compile with `g++ -std=c++17 -O2` into a fresh temp
       directory with the problem's `driver.cpp`, run every test under the time limit, compare output, measure peak
