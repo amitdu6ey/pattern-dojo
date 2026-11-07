@@ -51,8 +51,19 @@ class BuildGateTests(unittest.TestCase):
         self.assertTrue(any(e.startswith("gate 1") and "expects" in e for e in errs), errs)
         self.assertTrue(any("gates 2 and 3 skipped" in e for e in errs), errs)
 
+    def relax_walkthrough(self):
+        """Point every walkthrough step at line 1, so a shorter solution.cpp still passes the format check."""
+        path = os.path.join(self.dir, "problem.json")
+        with open(path) as f:
+            data = json.load(f)
+        for step in data["walkthrough"]:
+            step["lines"] = [1, 1]
+        with open(path, "w") as f:
+            json.dump(data, f)
+
     def test_slow_reference_fails_gate_1_on_scale(self):
         shutil.copy(os.path.join(self.dir, "brute.cpp"), os.path.join(self.dir, "solution.cpp"))
+        self.relax_walkthrough()
         errs = self.run_check()["errors"]
         self.assertTrue(any("TLE on scale test" in e for e in errs), errs)
 

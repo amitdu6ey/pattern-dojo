@@ -34,7 +34,7 @@ unchecked item each run (see `LOOP.md`).
 - [x] P0.3b Problem page as a split view (problem left, editor and results placeholder right, each pane scrolling on
       its own): statement, example, gated hints that reveal one at a time, complexity and mistakes hidden until
       the learner has solved the problem. Replace the stub in `tools/render.py`. Follow `design/ui-mock.html`.
-- [ ] P0.3c Solution walkthrough on the problem page, hidden until the learner has solved the problem (and, once the
+- [x] P0.3c Solution walkthrough on the problem page, hidden until the learner has solved the problem (and, once the
       quiz exists in P0.6, finished it) or gives up: the reference solution as annotated code with step tabs, where
       each step names a line range and explains it. Steps live in `problem.json` as `walkthrough`, are validated
       against `solution.cpp`, and are rendered at build time with C++ syntax highlighting.

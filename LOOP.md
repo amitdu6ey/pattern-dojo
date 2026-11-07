@@ -14,14 +14,16 @@ Read this first on every run. One run advances the platform by exactly one ROADM
    (`git commit -am "lock: <item id>"`) and `git push origin main`, so any other runner sees the lock.
 4. Do the item. One item per run. If it is too big for one run, split it into sub-items in `ROADMAP.md`,
    and do only the first.
-5. Gate: run `python3 -m unittest discover -s tools -p "test_*.py"` and `python3 tools/runner.py --selftest`, and once
-   `tools/build.py` exists also `python3 tools/build.py --check`. All must pass before you commit.
-   Never commit a failing build or a failing solution. Run gate commands with `&&` and never pipe them through
-   `tail` or `grep`, because a pipe hides the exit code. If a gate flakes, find the cause; do not just rerun it.
-6. Tick the item in `ROADMAP.md`, append one line to `LOG.md` (date, item, what changed, how it was verified),
-   set `state.json` to `idle` with `last_run`, then `git add -A` and `git commit -m "<item id>: <summary>"`.
-   After the commit, run `git push origin main`. Push only when the gate has passed. If the push is rejected, run
-   `git pull --rebase origin main`, run the gate again, and push once more. If that fails, write what happened in
+5. Gate: `python3 tools/gate.py` runs every check (unit tests, runner self-test, fixture and problem checks, site
+   build) and exits non-zero at the first failure. A gate that fails or flakes is a bug to find, never to rerun until
+   it passes.
+6. Bookkeeping, before the gate: tick the item in `ROADMAP.md`, append one line to `LOG.md` (date, item, what changed,
+   how it was verified), and set `state.json` to `idle` with `last_run`. Then commit and push in ONE command, so
+   that a failing gate can never be followed by a commit:
+   `python3 tools/gate.py && git add -A && git commit -m "<item id>: <summary>" && git push origin main`
+   Never split this across lines, never put a heredoc in the middle of it, never pipe the gate through `tail` or
+   `grep`, and never run `git commit` on its own after a gate run. If the push is rejected, run
+   `git pull --rebase origin main`, then the same one-line command again. If that fails, write what happened in
    `LOG.md`, set the state to `idle`, and end the run.
 7. Reply with two lines at most: what you did, and the next item.
 
