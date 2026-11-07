@@ -69,6 +69,28 @@ class GensTests(unittest.TestCase):
             parent[find(u)] = find(v)
         self.assertEqual(len({find(i) for i in range(n)}), 1)
 
+    def test_snake_grid_is_a_single_corridor(self):
+        out = gens.generate({"gen": "snake_grid", "rows": 5, "cols": 5}).strip().split("\n")
+        self.assertEqual(out[0], "5 5")
+        grid = [list(map(int, r.split())) for r in out[1:]]
+        self.assertEqual(grid[0][0], 2)
+        self.assertEqual(sum(v == 2 for row in grid for v in row), 1)
+        # breadth-first rot: every fresh cell is reached and the last one rots at minute 16
+        seen, frontier, minutes = {(0, 0)}, [(0, 0)], 0
+        while frontier:
+            nxt = []
+            for r, c in frontier:
+                for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    rr, cc = r + dr, c + dc
+                    if 0 <= rr < 5 and 0 <= cc < 5 and grid[rr][cc] == 1 and (rr, cc) not in seen:
+                        seen.add((rr, cc))
+                        nxt.append((rr, cc))
+            if nxt:
+                minutes += 1
+            frontier = nxt
+        self.assertEqual(minutes, 16)
+        self.assertEqual(len(seen), sum(v != 0 for row in grid for v in row))
+
     def test_permutation_is_a_permutation(self):
         out = gens.generate({"gen": "permutation", "seed": 2, "n": 30}).strip().split("\n")
         self.assertEqual(sorted(map(int, out[1].split())), list(range(1, 31)))

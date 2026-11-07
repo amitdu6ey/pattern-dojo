@@ -28,7 +28,7 @@ unchecked item each run (see `LOOP.md`).
 - [x] P0.2 Shared theme and layout from `seed/rotting-oranges.html` (palette tokens and fonts only, light and
       dark), following `design/ui-mock.html`: a single column of plain lists for the home screen, no decoration.
       Plus an `index.html` listing patterns and problems.
-- [ ] P0.3a Problem 001, Rotting Oranges, as the first real problem in `problems/001-rotting-oranges/`: all five files,
+- [x] P0.3a Problem 001, Rotting Oranges, as the first real problem in `problems/001-rotting-oranges/`: all five files,
       a serpentine-grid generator (`snake_grid` in `tools/gens.py`) so a minute-by-minute brute force times out,
       a quiz and an interview script. It must pass every gate in `tools/build.py`.
 - [ ] P0.3b Problem page as a split view (problem left, editor and results placeholder right, each pane scrolling on

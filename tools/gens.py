@@ -7,6 +7,7 @@ that inclusive range, so one spec can describe many small random cases (fuzz). S
 Output formats (the driver of each problem reads one of these):
   array        first line "n" (or "n k" when k is given), second line n integers
   grid         first line "R C", then R lines of C integers
+  snake_grid   same format as grid: a serpentine corridor of fresh oranges (1) with a rotten orange (2) at the top left
   string       one line
   graph        first line "n m", then m lines "u v" or "u v w" (0-indexed)
   permutation  first line "n", second line a permutation of 1..n
@@ -48,6 +49,20 @@ def _grid(p, rng):
     return "%d %d\n" % (rows, cols) + "\n".join(lines) + "\n"
 
 
+def _snake_grid(p, rng):
+    """A serpentine corridor: full rows of 1 joined by a single gap in each wall row, so rot needs about
+    rows * cols / 2 minutes to reach the end. Slow for solutions that rescan the whole grid every minute."""
+    rows, cols = p.get("rows", 5), p.get("cols", 5)
+    grid = [[0] * cols for _ in range(rows)]
+    for r in range(rows):
+        if r % 2 == 0:
+            grid[r] = [1] * cols
+        else:
+            grid[r][cols - 1 if (r // 2) % 2 == 0 else 0] = 1
+    grid[0][0] = 2
+    return "%d %d\n" % (rows, cols) + "\n".join(" ".join(map(str, row)) for row in grid) + "\n"
+
+
 def _string(p, rng):
     n, alphabet = p.get("n", 10), p.get("alphabet", ALPHABET)
     return "".join(rng.choice(alphabet) for _ in range(n)) + "\n"
@@ -86,7 +101,7 @@ def _permutation(p, rng):
     return "%d\n%s\n" % (n, " ".join(map(str, vals)))
 
 
-GENERATORS = {"array": _array, "grid": _grid, "string": _string, "graph": _graph, "permutation": _permutation}
+GENERATORS = {"array": _array, "grid": _grid, "snake_grid": _snake_grid, "string": _string, "graph": _graph, "permutation": _permutation}
 
 
 def check_spec(spec):

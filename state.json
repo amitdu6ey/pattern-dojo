@@ -1,6 +1,6 @@
 {
-  "status": "working",
-  "current": "P0.3a",
-  "started_at": "2026-11-07T20:09:13Z",
-  "last_run": "2026-11-07T19:26:41Z"
+  "status": "idle",
+  "current": null,
+  "started_at": null,
+  "last_run": "2026-11-07T20:16:08Z"
 }
