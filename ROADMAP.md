@@ -28,11 +28,15 @@ unchecked item each run (see `LOOP.md`).
 - [x] P0.2 Shared theme and layout from `seed/rotting-oranges.html` (palette tokens and fonts only, light and
       dark), following `design/ui-mock.html`: a single column of plain lists for the home screen, no decoration.
       Plus an `index.html` listing patterns and problems.
-- [ ] P0.3 Problem page as a split view (problem left, editor and results right, each pane scrolling on its own).
-      Statement, example, gated hints, and the annotated solution walkthrough with step tabs (locked until the
-      learner has solved the problem and finished the quiz, or explicitly gives up). Port Rotting Oranges in as
-      problem 001 with all five files, scale tests that its brute force fails, a quiz and an interview script,
-      and keep its grid stepper in the walkthrough.
+- [ ] P0.3a Problem 001, Rotting Oranges, as the first real problem in `problems/001-rotting-oranges/`: all five files,
+      a serpentine-grid generator (`snake_grid` in `tools/gens.py`) so a minute-by-minute brute force times out,
+      a quiz and an interview script. It must pass every gate in `tools/build.py`.
+- [ ] P0.3b Problem page as a split view (problem left, editor and results placeholder right, each pane scrolling on
+      its own): statement, example, gated hints that reveal one at a time, complexity and mistakes hidden until
+      the learner has solved the problem. Replace the stub in `tools/render.py`. Follow `design/ui-mock.html`.
+- [ ] P0.3c Solution walkthrough on the problem page, locked until the learner has solved the problem and finished
+      the quiz or gives up: annotated code with step tabs, and the grid stepper ported from
+      `seed/rotting-oranges.html`.
 - [ ] P0.4 Local judge, `tools/serve.py` (stdlib): serves `site/` and exposes `/api/run` (visible tests only) and
       `/api/submit` (all tests, scale tests included). Compile with `g++ -std=c++17 -O2` into a fresh temp
       directory with the problem's `driver.cpp`, run every test under the time limit, compare output, measure peak
